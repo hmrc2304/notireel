@@ -1,0 +1,63 @@
+name: Despachar la cola del panel
+
+# Lo que se aprieta en el panel queda encolado en `trabajos`. Vercel no sirve para
+# producirlo: la función se corta a los 60 segundos y no tiene ffmpeg. Este
+# workflow es el que hace el trabajo pesado.
+#
+# Cada 15 minutos: es la espera máxima entre apretar el botón y ver la pieza.
+# Si la cola está vacía la corrida termina en segundos y no gasta nada.
+on:
+  schedule:
+    - cron: '4,19,34,49 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  # Dos corridas a la vez tomarían el mismo trabajo. El PATCH condicional del
+  # trabajador ya lo evita, pero no hace falta gastar dos runners para eso.
+  group: trabajador
+  cancel-in-progress: false
+
+jobs:
+  despachar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Instalar ffmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+
+      - name: Regenerar el marco
+        run: node src/marco.mjs ana
+
+      - name: Despachar la cola
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          KIE_API_KEY: ${{ secrets.KIE_API_KEY }}
+          SUPABASE_NOTIREEL_URL: ${{ secrets.SUPABASE_NOTIREEL_URL }}
+          SUPABASE_NOTIREEL_SERVICE_KEY: ${{ secrets.SUPABASE_NOTIREEL_SERVICE_KEY }}
+          NOTIREEL_SITIO: ${{ secrets.NOTIREEL_SITIO }}
+          META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+        run: node src/trabajador.mjs
+
+      - name: Guardar las piezas si algo falló
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cola-${{ github.run_id }}
+          path: |
+            salida/*.mp4
+            salida/placas/*.png
+            salida/carruseles/**/*.png
+          retention-days: 3
+          if-no-files-found: ignore

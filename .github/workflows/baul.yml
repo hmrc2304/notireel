@@ -1,0 +1,43 @@
+name: Llenar el baúl
+
+# El baúl guarda las 100 mejores del día para que el panel tenga de dónde elegir.
+# Corre tres veces por día porque la agenda cambia: lo que a la mañana era la nota
+# principal, a la noche ya no está. El upsert por clave evita duplicar lo que
+# sigue vigente, así que repetir no ensucia.
+#
+# Los horarios están repartidos y salteados del minuto 0: el cron de GitHub se
+# saltea corridas y las que caen en punto son las primeras en perderse.
+on:
+  schedule:
+    - cron: '13 9 * * *'
+    - cron: '13 15 * * *'
+    - cron: '13 22 * * *'
+  workflow_dispatch:
+    inputs:
+      tope:
+        description: 'Cuántas noticias guardar'
+        default: '100'
+        type: string
+
+concurrency:
+  group: baul
+  cancel-in-progress: false
+
+jobs:
+  llenar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Llenar el baúl
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SUPABASE_NOTIREEL_URL: ${{ secrets.SUPABASE_NOTIREEL_URL }}
+          SUPABASE_NOTIREEL_SERVICE_KEY: ${{ secrets.SUPABASE_NOTIREEL_SERVICE_KEY }}
+        run: node src/baul.mjs --tope ${{ inputs.tope || '100' }}

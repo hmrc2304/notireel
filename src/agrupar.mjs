@@ -131,6 +131,34 @@ export function agruparPorTexto(items, { umbral = null } = {}) {
 /** Un titular en ruso o en chino no sirve de referencia para una nota en español. */
 const LATINO = /^[\p{Script=Latin}\p{N}\p{P}\p{Zs}¿¡«»""''—–]+$/u;
 
+/**
+ * Bloques enfrentados, para saber si un hecho lo cuentan lados opuestos.
+ *
+ * Contar ejes distintos no sirve: el directorio tiene 138 ejes únicos, así que
+ * casi cualquier grupo de tres medios da tres ejes y todo parecería contrastado.
+ * Lo que importa es que haya al menos dos BLOQUES enfrentados en la misma noticia.
+ */
+const BLOQUES = [
+  ['occidental', 'atlántico', 'atlantico', 'europeísta', 'europeista', 'prooccidental', 'aliado ee.uu', 'mercado'],
+  ['antihegemonía', 'antihegemonia', 'antiimperialista', 'multipolar', 'antiintervencionista', 'resistencia', 'bolivariano'],
+  ['pro-israel', 'sionista'],
+  ['palestina', 'antiocupación', 'antiocupacion', 'antisionista'],
+  ['china', 'pcch'],
+  ['rusia'],
+  ['irán', 'iran'],
+];
+
+function bloquesDe(ejes) {
+  const encontrados = new Set();
+  for (const eje of ejes) {
+    const e = String(eje).toLowerCase();
+    BLOQUES.forEach((palabras, i) => {
+      if (palabras.some((p) => e.includes(p))) encontrados.add(i);
+    });
+  }
+  return encontrados;
+}
+
 function armarGrupo(noticias) {
   const medios = [...new Set(noticias.map((n) => n.medio))];
   const pesoMedios = medios.reduce((s, m) => s + (noticias.find((n) => n.medio === m)?.peso ?? 1), 0);
@@ -142,8 +170,6 @@ function armarGrupo(noticias) {
   const ordenadas = [...noticias].sort((a, b) => b.peso - a.peso || b.resumen.length - a.resumen.length);
   const legible = ordenadas.find((n) => LATINO.test(n.titulo)) ?? ordenadas[0];
 
-  // Los ejes distintos son la señal de que el hecho lo cuentan partes enfrentadas,
-  // no todos desde el mismo lado.
   const ejes = [...new Set(noticias.map((n) => n.eje).filter(Boolean))];
 
   return {
@@ -155,6 +181,8 @@ function armarGrupo(noticias) {
     imagen: noticias.find((n) => n.imagen)?.imagen ?? null,
     pesoMedios,
     ejes,
+    // Dos bloques opuestos contando el mismo hecho: eso sí es contraste real.
+    partesEnfrentadas: bloquesDe(ejes).size >= 2,
     // Un hecho que solo sostienen medios de nivel D no se puede dar por confirmado.
     soloMonitoreo: noticias.every((n) => n.nivel === 'D'),
     mejorNivel: ['A', 'B', 'C', 'D'].find((n) => noticias.some((x) => x.nivel === n)) ?? 'B',

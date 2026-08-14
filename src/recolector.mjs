@@ -18,19 +18,29 @@ const TIMEOUT = 20000;
 
 /* ─────────────────────────── parseo ─────────────────────────── */
 
+/**
+ * Deja texto plano.
+ *
+ * El orden importa: hay feeds que entregan el HTML escapado (`&lt;article…&gt;`),
+ * así que si se quitan las etiquetas antes de desescapar, al desescapar reaparecen
+ * y el resumen termina mostrando `<article data-history-node-id=…` en pantalla.
+ * Por eso se desescapa primero y se quitan etiquetas después, dos veces.
+ */
 function limpiar(s = '') {
-  return s
-    .replace(/<!\[CDATA\[|\]\]>/g, '')
-    .replace(/<[^>]+>/g, ' ')
+  const desescapar = (t) => t
     .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"')
     .replace(/&#39;|&apos;/g, "'")
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
-    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(n))
-    .replace(/\s+/g, ' ')
-    .trim();
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+    .replace(/&amp;/g, '&');
+
+  let t = String(s).replace(/<!\[CDATA\[|\]\]>/g, '');
+  t = desescapar(t).replace(/<[^>]+>/g, ' ');
+  t = desescapar(t).replace(/<[^>]+>/g, ' ');
+
+  return t.replace(/\s+/g, ' ').trim();
 }
 
 const etiqueta = (bloque, nombre) =>

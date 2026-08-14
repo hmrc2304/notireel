@@ -73,14 +73,32 @@ async function pedir(ruta, opciones) {
  * Acepta la nota entera o una clave suelta.
  */
 export async function yaPublicado(notaOClave) {
+  return Boolean(await notaDelHecho(notaOClave));
+}
+
+/**
+ * La nota ya publicada de este hecho, si existe.
+ *
+ * Separado de `yaPublicado` porque el trabajador necesita el slug: cuando alguien
+ * pide piezas de algo que el cron ya publicó, no hay que republicar la nota sino
+ * colgarle el video o el carrusel a la que ya está en el sitio.
+ */
+export async function notaDelHecho(notaOClave) {
   const claves = typeof notaOClave === 'string' ? [notaOClave] : clavesDelHecho(notaOClave);
+  if (!claves.length) return null;
   const lista = claves.map((c) => `"${c.replace(/"/g, '')}"`).join(',');
 
-  const filas = await pedir(
-    `hechos_vistos?select=clave,nota_id&clave=in.(${encodeURIComponent(lista)})&limit=1`,
+  const [visto] = await pedir(
+    `hechos_vistos?select=nota_id&clave=in.(${encodeURIComponent(lista)})&limit=1`,
     { headers: cabeceras() },
-  );
-  return filas?.length > 0;
+  ) ?? [];
+  if (!visto?.nota_id) return null;
+
+  const [nota] = await pedir(
+    `notas?select=id,slug,video_url&id=eq.${visto.nota_id}&limit=1`,
+    { headers: cabeceras() },
+  ) ?? [];
+  return nota ?? null;
 }
 
 /**

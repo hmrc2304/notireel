@@ -57,11 +57,39 @@ export function agrupar(palabras) {
   }
   cerrar();
 
+  const juntos = pegarColas(bloques);
+
   // Sin huecos: cada bloque dura hasta que arranca el siguiente.
-  for (let i = 0; i < bloques.length - 1; i++) {
-    bloques[i].hasta = Math.min(bloques[i + 1].desde, bloques[i].hasta + 0.35);
+  for (let i = 0; i < juntos.length - 1; i++) {
+    juntos[i].hasta = Math.min(juntos[i + 1].desde, juntos[i].hasta + 0.35);
   }
-  return bloques;
+  return juntos;
+}
+
+/**
+ * Pega los bloques de cola contra el anterior.
+ *
+ * El corte por puntuación deja restos de una o dos palabras ("a Portugal.")
+ * ocupando un subtítulo entero: se lee como si faltara algo. Se juntan mientras
+ * el bloque resultante siga entrando en una línea.
+ */
+function pegarColas(bloques) {
+  const out = [];
+
+  for (const b of bloques) {
+    const previo = out[out.length - 1];
+    const corto = b.texto.split(' ').length <= 2 && b.texto.length <= 10;
+    const cabe = previo && `${previo.texto} ${b.texto}`.length <= MAX_CHARS + 6;
+
+    if (corto && cabe) {
+      previo.texto = `${previo.texto} ${b.texto}`;
+      previo.hasta = b.hasta;
+      continue;
+    }
+    out.push({ ...b });
+  }
+
+  return out;
 }
 
 function escapar(s) {

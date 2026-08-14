@@ -49,9 +49,14 @@ const HERRAMIENTA = {
         type: 'boolean',
         description: 'true solo si es una imagen visual que funciona de fondo aunque se la recorte y amplíe',
       },
+      recorte: {
+        type: 'string',
+        enum: ['completa', 'izquierda', 'derecha', 'arriba', 'abajo'],
+        description: 'si la imagen es un collage de varias fotos, qué mitad conviene quedarse; "completa" si es una sola foto',
+      },
       motivo: { type: 'string', description: 'una frase corta explicando la decisión' },
     },
-    required: ['tipo', 'usable', 'motivo'],
+    required: ['tipo', 'usable', 'recorte', 'motivo'],
   },
 };
 
@@ -73,7 +78,12 @@ lugares, objetos, un hecho. Un logo o una marca de agua abajo NO la descalifica,
 porque ese pedazo se recorta. Un cartel o un texto chico dentro de la escena
 fotografiada tampoco: eso es parte de la foto.
 
-Ante la duda, si hay una escena visual reconocible, es usable.`;
+Ante la duda, si hay una escena visual reconocible, es usable.
+
+COLLAGES. Los medios arman fotos pegando dos o tres imágenes con un corte duro
+(el retrato de la persona de un lado y el lugar del hecho del otro). Eso NO se
+descarta: es material real. Marcalo en "recorte" diciendo qué mitad conviene,
+la que muestre mejor el hecho o a la persona. Una sola foto va como 'completa'.`;
 
 /** Mira la imagen y decide si sirve de fondo. */
 export async function evaluarImagen(rutaLocal) {
@@ -127,6 +137,34 @@ export async function generarPortada(nota, destino) {
 }
 
 /**
+ * Se queda con la mitad que indicó el control de calidad.
+ *
+ * Sin esto un collage lado a lado entra entero al 9:16 y el video muestra las dos
+ * fotos partidas por un corte vertical en el medio. Devuelve null si no hay nada
+ * que recortar, así el motor sigue con la original.
+ */
+function recortarMitad(origen, recorte, destino) {
+  if (!recorte || recorte === 'completa') return null;
+
+  const corte = {
+    izquierda: 'iw/2:ih:0:0',
+    derecha: 'iw/2:ih:iw/2:0',
+    arriba: 'iw:ih/2:0:0',
+    abajo: 'iw:ih/2:0:ih/2',
+  }[recorte];
+  if (!corte) return null;
+
+  try {
+    execFileSync('ffmpeg', ['-v', 'error', '-i', origen, '-vf', `crop=${corte}`, '-q:v', '3', '-y', destino]);
+    console.log(`  collage: me quedo con la mitad ${recorte}`);
+    return destino;
+  } catch (e) {
+    console.error(`  ! no pude recortar el collage (${e.message}), uso la entera`);
+    return null;
+  }
+}
+
+/**
  * Devuelve la ruta de una imagen de fondo utilizable, generando una si hace falta.
  * `descargar` es la función que baja la imagen original de la nota.
  */
@@ -161,7 +199,10 @@ export async function fondoParaNota(nota, rutaBase, descargar) {
     return { ruta: original, generada: false, veredicto: null };
   }
 
-  if (veredicto.usable) return { ruta: original, generada: false, veredicto };
+  if (veredicto.usable) {
+    const recortada = recortarMitad(original, veredicto.recorte, `${rutaBase}-mitad.jpg`);
+    return { ruta: recortada ?? original, generada: false, veredicto };
+  }
 
   console.log(`  imagen descartada (${veredicto.tipo}): ${veredicto.motivo}`);
   console.log('  generando una foto propia con GPT image 2...');
