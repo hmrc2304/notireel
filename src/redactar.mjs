@@ -107,7 +107,88 @@ ${coberturas}
 Redactá la nota de Noti Viral sobre este hecho.`;
 }
 
-export async function redactarNota(grupo) {
+const DEPURAR = {
+  name: 'depurar_grupo',
+  description: 'Indica qué coberturas del grupo son realmente del mismo hecho.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      del_hecho: {
+        type: 'array',
+        items: { type: 'integer' },
+        description: 'números de las coberturas que sí tratan el hecho principal',
+      },
+      hecho: { type: 'string', description: 'en una frase, cuál es el hecho principal' },
+    },
+    required: ['del_hecho', 'hecho'],
+  },
+};
+
+/**
+ * Saca del grupo las coberturas que no son del mismo hecho.
+ *
+ * La agrupación por texto es rápida y barata, pero con miles de noticias mete
+ * falsos positivos: una nota de Kazajistán terminó dentro de una de Colombia por
+ * compartir unas pocas palabras. Redactar sobre un grupo sucio produce una nota
+ * que mezcla dos hechos y atribuye a un medio algo que nunca dijo, que es el peor
+ * error posible para un medio que se presenta como verificador.
+ *
+ * Se hace solo con los grupos que se van a publicar, así que cuesta centavos.
+ */
+export async function depurarGrupo(grupo) {
+  if (grupo.noticias.length < 3) return grupo;
+
+  const lista = grupo.noticias
+    .map((n, i) => `${i}. [${n.medio}] ${n.titulo}`)
+    .join('\n');
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': env('ANTHROPIC_API_KEY'),
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: MODELO,
+      max_tokens: 800,
+      system: `Recibís titulares que un agrupador automático juntó como si fueran el mismo hecho.
+El agrupador se equivoca: mete titulares que solo comparten alguna palabra.
+
+Tomá el hecho del PRIMER titular como referencia y decidí cuáles de los demás tratan
+ESE MISMO hecho puntual. Un titular sobre el mismo país, la misma persona o el mismo
+conflicto pero sobre otro episodio NO va. Los titulares en otros idiomas cuentan si
+son del mismo hecho. Incluí siempre el 0.`,
+      tools: [DEPURAR],
+      tool_choice: { type: 'tool', name: 'depurar_grupo' },
+      messages: [{ role: 'user', content: lista }],
+    }),
+  });
+
+  if (!res.ok) return grupo;
+  const uso = (await res.json()).content.find((b) => b.type === 'tool_use');
+  if (!uso) return grupo;
+
+  const quedan = new Set(uso.input.del_hecho.filter((i) => Number.isInteger(i) && grupo.noticias[i]));
+  quedan.add(0);
+  if (quedan.size === grupo.noticias.length) return grupo;
+
+  const limpias = grupo.noticias.filter((_, i) => quedan.has(i));
+  const medios = [...new Set(limpias.map((n) => n.medio))];
+
+  console.log(`    depurado: ${grupo.noticias.length} coberturas -> ${limpias.length}`);
+
+  return {
+    ...grupo,
+    noticias: limpias,
+    medios,
+    cantidadMedios: medios.length,
+    ejes: [...new Set(limpias.map((n) => n.eje).filter(Boolean))],
+  };
+}
+
+export async function redactarNota(grupoCrudo) {
+  const grupo = await depurarGrupo(grupoCrudo);
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {

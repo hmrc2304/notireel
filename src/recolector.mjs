@@ -81,6 +81,11 @@ function parsear(xml, fuente) {
       idioma: fuente.idioma,
       alcance: fuente.alcance,
       peso: fuente.peso,
+      // Clasificación editorial: el nivel dice cuánto pesa la cobertura y el eje
+      // permite ver si un hecho lo cuentan partes enfrentadas o un solo lado.
+      nivel: fuente.nivel ?? 'B',
+      eje: fuente.eje ?? '',
+      pais: fuente.pais ?? '',
     };
   }).filter((x) => x.titulo.length > 15 && x.url);
 }

@@ -1,0 +1,756 @@
+DIRECTORIO GLOBAL DE MEDIOS — NOTI VIRAL
+Actualizado: 2026-08-14
+Total: 258 medios
+
+FORMATO DE CADA ENTRADA:
+Nombre | URL | Nivel de uso | Idioma | Formato | Eje geopolítico
+
+NIVELES:
+A = base de verificación; B = medio fuerte que debe contrastarse; C = versión/perspectiva de parte; D = monitor narrativo, nunca confirmación única.
+
+IMPORTANTE: las etiquetas ideológicas son aproximadas y describen la línea predominante; no califican automáticamente como verdadero o falso todo lo publicado.
+
+==========================================================================================
+GLOBAL
+==========================================================================================
+
+INTERNACIONAL:
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - Reuters | https://www.reuters.com/ | Nivel A | EN/ES | Agencia | Occidental-global
+  - Associated Press (AP) | https://apnews.com/ | Nivel A | EN/ES | Agencia cooperativa | Occidental-global
+
+FRANCIA/INTERNACIONAL:
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - Agence France-Presse (AFP) | https://www.afp.com/en/news-hub | Nivel A | EN/FR/ES | Agencia | Europeo-global
+
+ESPAÑA/INTERNACIONAL:
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - Agencia EFE | https://efe.com/ | Nivel A | ES | Agencia | Iberoamericano-europeo
+
+ALEMANIA/INTERNACIONAL:
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - dpa | https://www.dpa.com/en | Nivel A | DE/EN | Agencia | Europeo
+
+JAPÓN/INTERNACIONAL:
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - Kyodo News | https://english.kyodonews.net/ | Nivel A | JA/EN | Agencia cooperativa | Asia-Pacífico / Japón
+
+CHINA/INTERNACIONAL:
+
+  ESTATAL / OFICIAL:
+  - Xinhua | https://english.news.cn/ | Nivel C | ZH/EN/ES | Agencia estatal | China / multipolar estatal
+
+RUSIA/INTERNACIONAL:
+
+  ESTATAL / OFICIAL:
+  - TASS | https://tass.com/ | Nivel C | RU/EN | Agencia estatal | Rusia / multipolar estatal
+
+TURQUÍA/INTERNACIONAL:
+
+  ESTATAL / OFICIAL:
+  - Anadolu Agency | https://www.aa.com.tr/en | Nivel B | TR/EN/ES | Agencia estatal | Turquía / autonomía estratégica
+
+IRÁN/INTERNACIONAL:
+
+  ESTATAL / OFICIAL:
+  - IRNA | https://en.irna.ir/ | Nivel C | FA/EN | Agencia estatal | Irán / antihegemonía occidental
+
+CUBA/INTERNACIONAL:
+
+  ESTATAL / OFICIAL:
+  - Prensa Latina | https://www.prensa-latina.cu/ | Nivel C | ES/EN | Agencia estatal | Cuba / antiimperialista
+
+==========================================================================================
+NORTEAMÉRICA
+==========================================================================================
+
+ESTADOS UNIDOS:
+
+  DERECHA / CONSERVADOR:
+  - The Wall Street Journal | https://www.wsj.com/ | Nivel A | EN | Diario | Atlántico-occidental / mercados
+  - Fox News | https://www.foxnews.com/ | Nivel C | EN | TV/digital | Nacional-conservador / pro-EE.UU.
+  - National Review | https://www.nationalreview.com/ | Nivel C | EN | Revista | Conservador estadounidense
+  - Reason | https://reason.com/ | Nivel B | EN | Revista/digital | No intervencionista / mercado
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - Politico | https://www.politico.com/ | Nivel B | EN | Digital | Atlántico-occidental
+
+  IZQUIERDA / PROGRESISTA:
+  - The New York Times | https://www.nytimes.com/ | Nivel A | EN/ES | Diario | Atlántico-occidental
+  - The Washington Post | https://www.washingtonpost.com/ | Nivel A | EN | Diario | Atlántico-occidental
+  - CNN | https://www.cnn.com/ | Nivel B | EN/ES | TV/digital | Atlántico-occidental
+  - NPR | https://www.npr.org/ | Nivel A | EN | Radio/digital público | Occidental / servicio público
+  - PBS NewsHour | https://www.pbs.org/newshour/ | Nivel A | EN | TV pública | Servicio público estadounidense
+  - ProPublica | https://www.propublica.org/ | Nivel A | EN | Investigación sin lucro | No partidista investigativa
+  - Democracy Now! | https://www.democracynow.org/ | Nivel B | EN/ES | Programa independiente | Antiimperialista
+  - The Intercept | https://theintercept.com/ | Nivel B | EN/PT | Digital investigativo | Antiintervencionista
+
+  ESTATAL / OFICIAL:
+  - Voice of America (VOA) | https://www.voanews.com/ | Nivel C | EN/multilingüe | Medio público internacional | Proyección exterior estadounidense
+
+CANADÁ:
+
+  DERECHA / CONSERVADOR:
+  - The Globe and Mail | https://www.theglobeandmail.com/ | Nivel A | EN | Diario | Occidental / negocios
+  - National Post | https://nationalpost.com/ | Nivel B | EN | Diario/digital | Occidental-conservador
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - CBC News | https://www.cbc.ca/news | Nivel A | EN | Público | Canadá / occidental
+
+==========================================================================================
+EUROPA
+==========================================================================================
+
+REINO UNIDO:
+
+  DERECHA / CONSERVADOR:
+  - The Telegraph | https://www.telegraph.co.uk/ | Nivel B | EN | Diario | Atlántico-conservador
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - BBC News | https://www.bbc.com/news | Nivel A | EN/ES | Servicio público | Atlántico / Reino Unido
+  - Financial Times | https://www.ft.com/ | Nivel A | EN | Diario | Atlántico-global / negocios
+  - Sky News | https://news.sky.com/ | Nivel A | EN | TV/digital | Atlántico-occidental
+
+  IZQUIERDA / PROGRESISTA:
+  - The Guardian | https://www.theguardian.com/international | Nivel A | EN | Diario | Occidental progresista
+
+FRANCIA:
+
+  DERECHA / CONSERVADOR:
+  - Le Figaro | https://www.lefigaro.fr/ | Nivel B | FR | Diario | Europeísta-conservador
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - AFP | https://www.afp.com/ | Nivel A | FR/EN/ES | Agencia | Francia / global
+  - France 24 | https://www.france24.com/en/ | Nivel A | FR/EN/ES | TV pública internacional | Proyección francesa/europea
+
+  IZQUIERDA / PROGRESISTA:
+  - Le Monde | https://www.lemonde.fr/en/ | Nivel A | FR/EN | Diario | Europeísta
+  - Mediapart | https://www.mediapart.fr/ | Nivel A | FR | Digital investigativo | Crítica del poder
+
+ALEMANIA:
+
+  DERECHA / CONSERVADOR:
+  - Frankfurter Allgemeine (FAZ) | https://www.faz.net/ | Nivel A | DE | Diario | Europeísta / mercado
+  - Bild | https://www.bild.de/ | Nivel C | DE | Tabloide | Atlántico / pro-Israel declarado
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - Deutsche Welle | https://www.dw.com/ | Nivel A | DE/EN/ES | Servicio público internacional | Alemania / UE / atlántico
+
+  IZQUIERDA / PROGRESISTA:
+  - Der Spiegel | https://www.spiegel.de/international/ | Nivel A | DE/EN | Revista | Europeísta
+  - Süddeutsche Zeitung | https://www.sueddeutsche.de/ | Nivel A | DE | Diario | Europeísta
+  - taz | https://taz.de/ | Nivel B | DE | Diario cooperativo | Crítica occidental
+
+ESPAÑA:
+
+  DERECHA / CONSERVADOR:
+  - El Mundo | https://www.elmundo.es/ | Nivel A | ES | Diario | Europeísta-conservador
+  - El Español | https://www.elespanol.com/ | Nivel B | ES | Digital | Occidental / europeísta
+  - ABC | https://www.abc.es/ | Nivel B | ES | Diario | Atlántico-conservador
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - La Vanguardia | https://www.lavanguardia.com/ | Nivel A | ES/CAT | Diario | Europeísta
+  - RTVE Noticias | https://www.rtve.es/noticias/ | Nivel B | ES | Radio/TV pública | España / UE
+
+  IZQUIERDA / PROGRESISTA:
+  - El País | https://elpais.com/ | Nivel A | ES | Diario | Europeísta / atlántico
+  - elDiario.es | https://www.eldiario.es/ | Nivel A | ES | Digital | Europeísta progresista
+  - Público | https://www.publico.es/ | Nivel B | ES | Digital | Antiintervencionista / progresista
+
+ITALIA:
+
+  DERECHA / CONSERVADOR:
+  - Il Giornale | https://www.ilgiornale.it/ | Nivel C | IT | Diario | Nacional-conservador
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - ANSA | https://www.ansa.it/english/ | Nivel A | IT/EN | Agencia cooperativa | Italia / UE
+  - Corriere della Sera | https://www.corriere.it/english/ | Nivel A | IT/EN | Diario | Europeísta
+  - Rai News | https://www.rainews.it/ | Nivel B | IT | Radio/TV pública | Italia / UE
+
+  IZQUIERDA / PROGRESISTA:
+  - La Repubblica | https://www.repubblica.it/ | Nivel A | IT | Diario | Europeísta liberal
+  - Il Manifesto | https://ilmanifesto.it/ | Nivel B | IT | Diario cooperativo | Antiimperialista
+
+RUMANIA:
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - Agerpres | https://agerpres.ro/english/ | Nivel B | RO/EN | Agencia nacional | Rumania / UE
+  - Digi24 | https://www.digi24.ro/ | Nivel B | RO | TV/digital | Atlántico / UE
+  - HotNews | https://hotnews.ro/ | Nivel B | RO | Digital | Atlántico / UE
+
+  INDEPENDIENTE / INVESTIGACIÓN / VERIFICACIÓN:
+  - G4Media | https://www.g4media.ro/ | Nivel B | RO | Digital | Atlántico / UE
+
+UNIÓN EUROPEA:
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - Euronews | https://www.euronews.com/ | Nivel B | Multilingüe | TV/digital | Europeísta
+  - Politico Europe | https://www.politico.eu/ | Nivel B | EN | Digital | Atlántico / UE
+
+  INDEPENDIENTE / INVESTIGACIÓN / VERIFICACIÓN:
+  - EUobserver | https://euobserver.com/ | Nivel A | EN | Digital | Europeísta crítico
+
+==========================================================================================
+EURASIA
+==========================================================================================
+
+RUSIA:
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - Kommersant | https://www.kommersant.ru/ | Nivel B | RU | Diario | Rusia institucional
+  - RBC | https://www.rbc.ru/ | Nivel B | RU | Negocios/digital | Rusia institucional
+
+  ESTATAL / OFICIAL:
+  - RT | https://www.rt.com/ | Nivel D | Multilingüe | TV/digital estatal | Rusia / antihegemonía occidental
+  - Sputnik | https://sputnikglobe.com/ | Nivel D | Multilingüe | Agencia/radio estatal | Rusia / antihegemonía occidental
+
+==========================================================================================
+ASIA ORIENTAL
+==========================================================================================
+
+CHINA:
+
+  DERECHA / CONSERVADOR:
+  - Global Times | https://www.globaltimes.cn/ | Nivel D | ZH/EN | Tabloide estatal | China / nacionalismo
+
+  IZQUIERDA / PROGRESISTA:
+  - Caixin Global | https://www.caixinglobal.com/ | Nivel A | ZH/EN | Negocios privado | China pragmática
+
+  ESTATAL / OFICIAL:
+  - CGTN | https://www.cgtn.com/ | Nivel C | ZH/EN/ES | TV estatal internacional | China / multipolar estatal
+  - People's Daily | http://en.people.cn/ | Nivel D | ZH/EN | Diario oficial | China / PCCh
+  - China Daily | https://www.chinadaily.com.cn/ | Nivel C | ZH/EN | Diario estatal | China / diplomacia pública
+  - Sixth Tone | https://www.sixthtone.com/ | Nivel B | EN | Digital | China urbana
+  - China News Service / ECNS | https://www.ecns.cn/ | Nivel C | ZH/EN | Agencia estatal | China / diáspora y proyección internacional
+  - CCTV English | https://english.cctv.com/ | Nivel C | ZH/EN | TV estatal | China / diplomacia pública
+
+HONG KONG:
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - South China Morning Post | https://www.scmp.com/ | Nivel B | EN | Diario | China/Hong Kong global
+
+JAPÓN:
+
+  DERECHA / CONSERVADOR:
+  - Yomiuri Shimbun | https://japannews.yomiuri.co.jp/ | Nivel A | JA/EN | Diario | Japón conservador / aliado EE.UU.
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - NHK World-Japan | https://www3.nhk.or.jp/nhkworld/ | Nivel A | JA/EN | Servicio público | Japón / aliado occidental
+  - Nikkei Asia | https://asia.nikkei.com/ | Nivel A | EN | Diario/negocios | Asia-Pacífico / negocios
+  - The Japan Times | https://www.japantimes.co.jp/ | Nivel B | EN | Diario | Japón internacional
+
+  IZQUIERDA / PROGRESISTA:
+  - Asahi Shimbun | https://www.asahi.com/ajw/ | Nivel A | JA/EN | Diario | Japón liberal
+
+==========================================================================================
+ASIA CENTRAL
+==========================================================================================
+
+MONGOLIA:
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - Mongolian National Broadcaster (MNB) | https://www.mnb.mn/ | Nivel B | MN | Radio/TV pública | Mongolia nacional
+  - News.mn | https://news.mn/en/ | Nivel B | MN/EN | Digital | Mongolia plural
+
+  INDEPENDIENTE / INVESTIGACIÓN / VERIFICACIÓN:
+  - iKon.mn | https://ikon.mn/ | Nivel B | MN | Digital | Mongolia urbana
+  - The UB Post | https://theubposts.com/ | Nivel B | EN | Diario/digital | Mongolia internacional
+
+  ESTATAL / OFICIAL:
+  - MONTSAME | https://www.montsame.mn/en/ | Nivel C | MN/EN/RU/ZH/JA | Agencia estatal | Mongolia / equilibrio Rusia-China-Occidente
+
+KAZAJISTÁN:
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - Tengrinews | https://en.tengrinews.kz/ | Nivel B | RU/KK/EN | Digital | Kazajistán mainstream
+
+  INDEPENDIENTE / INVESTIGACIÓN / VERIFICACIÓN:
+  - Vlast.kz | https://vlast.kz/english/ | Nivel A | RU/KK/EN | Digital | Kazajistán pluralista
+  - Orda.kz | https://orda.kz/ | Nivel B | RU/KK | Digital | Kazajistán pluralista
+  - KazTAG | https://kaztag.kz/en/ | Nivel B | RU/KK/EN | Agencia privada | Kazajistán plural
+
+  ESTATAL / OFICIAL:
+  - Qazinform | https://qazinform.com/ | Nivel C | KK/RU/EN/ZH/UZ | Agencia estatal | Kazajistán / multivectorial
+  - Qazaqstan TV | https://qazaqstan.tv/ | Nivel C | KK/RU | TV estatal | Kazajistán estatal
+  - The Astana Times | https://astanatimes.com/ | Nivel C | EN | Diario/digital | Kazajistán internacional
+
+==========================================================================================
+ASIA MERIDIONAL
+==========================================================================================
+
+INDIA:
+
+  DERECHA / CONSERVADOR:
+  - Swarajya | https://swarajyamag.com/ | Nivel C | EN | Revista/digital | India nacionalista
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - Press Trust of India (PTI) | https://www.ptinews.com/ | Nivel A | EN/HI | Agencia cooperativa | India institucional
+  - The Indian Express | https://indianexpress.com/ | Nivel A | EN | Diario | India plural
+  - Times of India | https://timesofindia.indiatimes.com/ | Nivel B | EN | Diario | India / mercado
+  - NDTV | https://www.ndtv.com/ | Nivel B | EN/HI | TV/digital | India / establishment
+  - Alt News | https://www.altnews.in/ | Nivel A | EN/HI | Verificación | Fact-check regional
+
+  IZQUIERDA / PROGRESISTA:
+  - The Hindu | https://www.thehindu.com/ | Nivel A | EN | Diario | India no alineada
+  - Scroll.in | https://scroll.in/ | Nivel B | EN | Digital | India pluralista
+  - The Wire | https://thewire.in/ | Nivel B | EN/HI | Digital sin lucro | Anti-nacionalismo hindú
+
+PAKISTÁN:
+
+  DERECHA / CONSERVADOR:
+  - ARY News | https://arynews.tv/ | Nivel C | EN/UR | TV/digital | Pakistán nacional
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - Dawn | https://www.dawn.com/ | Nivel A | EN | Diario | Pakistán civil
+  - Geo News | https://www.geo.tv/ | Nivel B | EN/UR | TV/digital | Pakistán institucional
+  - The Express Tribune | https://tribune.com.pk/ | Nivel B | EN | Diario | Pakistán global
+
+  ESTATAL / OFICIAL:
+  - Associated Press of Pakistan | https://www.app.com.pk/ | Nivel C | EN/UR | Agencia estatal | Pakistán / gobierno
+
+==========================================================================================
+MEDIO ORIENTE
+==========================================================================================
+
+TURQUÍA:
+
+  DERECHA / CONSERVADOR:
+  - Daily Sabah | https://www.dailysabah.com/ | Nivel C | EN | Diario | Turquía / Erdoğan
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - Sözcü | https://www.sozcu.com.tr/ | Nivel B | TR | Diario/TV | Nacionalista secular
+
+  INDEPENDIENTE / INVESTIGACIÓN / VERIFICACIÓN:
+  - T24 | https://t24.com.tr/ | Nivel B | TR | Digital | Pluralista
+  - Medyascope | https://medyascope.tv/ | Nivel B | TR | Digital/video | Pluralista
+
+  ESTATAL / OFICIAL:
+  - TRT World | https://www.trtworld.com/ | Nivel C | EN | TV estatal internacional | Turquía / autonomía estratégica
+
+IRÁN:
+
+  DERECHA / CONSERVADOR:
+  - Tasnim News | https://www.tasnimnews.com/en | Nivel D | FA/EN | Agencia semioficial | Irán / IRGC
+  - Fars News | https://www.farsnews.ir/en | Nivel D | FA/EN | Agencia semioficial | Irán / IRGC
+  - Tehran Times | https://www.tehrantimes.com/ | Nivel C | EN | Diario | Irán estatal
+  - Mehr News Agency | https://en.mehrnews.com/ | Nivel C | FA/EN/AR | Agencia semioficial | Irán / República Islámica
+  - Kayhan | https://kayhan.ir/en | Nivel D | FA/EN/AR | Diario | Irán / liderazgo religioso
+
+  IZQUIERDA / PROGRESISTA:
+  - Shargh Daily | https://www.sharghdaily.com/ | Nivel B | FA | Diario | Irán reformista
+
+  ESTATAL / OFICIAL:
+  - Press TV | https://www.presstv.ir/ | Nivel D | EN | TV estatal internacional | Irán / Eje de Resistencia
+  - HispanTV | https://www.hispantv.com/ | Nivel D | ES | TV estatal internacional | Irán / antiimperialista
+
+IRÁN/REGIONAL ÁRABE:
+
+  ESTATAL / OFICIAL:
+  - Al-Alam | https://www.alalam.ir/ | Nivel D | AR/FA | TV estatal internacional | Irán / audiencia árabe
+
+QATAR/REGIONAL:
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - Al Jazeera English | https://www.aljazeera.com/ | Nivel B | EN | TV/digital | Qatar / no alineamiento pragmático
+
+ARABIA SAUDITA/REGIONAL:
+
+  ESTATAL / OFICIAL:
+  - Al Arabiya | https://english.alarabiya.net/ | Nivel C | AR/EN | TV/digital | Arabia Saudita / prooccidental regional
+
+ARABIA SAUDITA:
+
+  ESTATAL / OFICIAL:
+  - Arab News | https://www.arabnews.com/ | Nivel C | EN | Diario | Arabia Saudita / occidental
+
+LÍBANO/REGIONAL:
+
+  IZQUIERDA / PROGRESISTA:
+  - Al Mayadeen | https://english.almayadeen.net/ | Nivel D | AR/EN/ES | TV/digital | Antiimperialista / pro-Irán
+
+REINO UNIDO/REGIONAL:
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - Middle East Eye | https://www.middleeasteye.net/ | Nivel C | EN | Digital | Afinidad catarí alegada
+  - The New Arab | https://www.newarab.com/ | Nivel B | EN/AR | Digital | Catarí/regional
+
+REGIONAL:
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - Al-Monitor | https://www.al-monitor.com/ | Nivel B | EN | Digital | Pragmático / Washington-regional
+
+==========================================================================================
+ISRAEL-PALESTINA
+==========================================================================================
+
+ISRAEL:
+
+  DERECHA / CONSERVADOR:
+  - The Jerusalem Post | https://www.jpost.com/ | Nivel B | EN | Diario | Pro-Israel
+  - Israel Hayom | https://www.israelhayom.com/ | Nivel C | HE/EN | Diario | Pro-Israel / derecha
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - The Times of Israel | https://www.timesofisrael.com/ | Nivel B | EN | Digital | Pro-Israel moderado
+  - Ynetnews | https://www.ynetnews.com/ | Nivel B | HE/EN | Digital | Pro-Israel mainstream
+  - KAN News | https://www.kan.org.il/ | Nivel B | HE | Servicio público | Israel estatal/público
+
+  IZQUIERDA / PROGRESISTA:
+  - Haaretz | https://www.haaretz.com/ | Nivel A | HE/EN | Diario | Israel liberal
+
+ISRAEL/PALESTINA:
+
+  IZQUIERDA / PROGRESISTA:
+  - +972 Magazine | https://www.972mag.com/ | Nivel A | EN | Digital sin lucro | Pro derechos palestinos
+
+PALESTINA:
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - Ma'an News | https://www.maannews.net/ | Nivel B | AR | Agencia/digital | Pro-Palestina
+
+  ESTATAL / OFICIAL:
+  - WAFA | https://english.wafa.ps/ | Nivel C | AR/EN | Agencia oficial | Pro-Palestina / AP
+
+ESTADOS UNIDOS/PALESTINA:
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - The Electronic Intifada | https://electronicintifada.net/ | Nivel C | EN | Digital sin lucro | Antiocupación
+
+  IZQUIERDA / PROGRESISTA:
+  - Mondoweiss | https://mondoweiss.net/ | Nivel C | EN | Digital sin lucro | Antisionista / antiocupación
+
+ESTADOS UNIDOS/ISRAEL:
+
+  DERECHA / CONSERVADOR:
+  - Jewish News Syndicate (JNS) | https://www.jns.org/ | Nivel C | EN | Agencia/digital | Sionista conservador
+
+==========================================================================================
+OCEANÍA
+==========================================================================================
+
+AUSTRALIA:
+
+  DERECHA / CONSERVADOR:
+  - The Australian | https://www.theaustralian.com.au/ | Nivel B | EN | Diario | Pro-EE.UU. / conservador
+  - Sky News Australia | https://www.skynews.com.au/ | Nivel C | EN | TV/digital | Pro-EE.UU. / conservador
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - ABC News Australia | https://www.abc.net.au/news | Nivel A | EN | Servicio público | Australia / occidental
+  - SBS News | https://www.sbs.com.au/news/ | Nivel A | EN/multilingüe | Servicio público | Australia / Asia-Pacífico
+
+  IZQUIERDA / PROGRESISTA:
+  - Sydney Morning Herald | https://www.smh.com.au/ | Nivel A | EN | Diario | Occidental / Australia
+  - Crikey | https://www.crikey.com.au/ | Nivel B | EN | Digital | Crítico del poder
+
+==========================================================================================
+ÁFRICA
+==========================================================================================
+
+PANAFRICANO:
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - Africanews | https://www.africanews.com/ | Nivel B | EN/FR | TV/digital | Regional africano
+  - AllAfrica | https://allafrica.com/ | Nivel B | EN/FR | Agregador | Regional africano
+
+SUDÁFRICA:
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - News24 | https://www.news24.com/ | Nivel A | EN | Digital | Sudáfrica mainstream
+  - SABC News | https://www.sabcnews.com/ | Nivel B | EN | Público | Sudáfrica estatal/público
+
+  IZQUIERDA / PROGRESISTA:
+  - Mail & Guardian | https://mg.co.za/ | Nivel A | EN | Diario/digital | Panafricano progresista
+
+  INDEPENDIENTE / INVESTIGACIÓN / VERIFICACIÓN:
+  - Daily Maverick | https://www.dailymaverick.co.za/ | Nivel A | EN | Digital | Sudáfrica pluralista
+
+NIGERIA:
+
+  DERECHA / CONSERVADOR:
+  - Daily Trust | https://dailytrust.com/ | Nivel B | EN | Diario | Nigeria regional
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - Arise News | https://www.arise.tv/ | Nivel B | EN | TV/digital | Nigeria / África global
+
+  INDEPENDIENTE / INVESTIGACIÓN / VERIFICACIÓN:
+  - Premium Times | https://www.premiumtimesng.com/ | Nivel A | EN | Digital | Nigeria pluralista
+
+  ESTATAL / OFICIAL:
+  - Nigerian Television Authority (NTA) | https://nta.ng/ | Nivel C | EN | TV estatal | Nigeria estatal
+
+KENIA:
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - Nation Africa | https://nation.africa/ | Nivel A | EN | Diario/digital | África oriental
+  - The Standard | https://www.standardmedia.co.ke/ | Nivel B | EN | Diario/digital | Kenia mainstream
+
+  ESTATAL / OFICIAL:
+  - Kenya Broadcasting Corporation (KBC) | https://www.kbc.co.ke/ | Nivel C | EN/SW | Radio/TV pública | Kenia estatal
+
+ETIOPÍA:
+
+  INDEPENDIENTE / INVESTIGACIÓN / VERIFICACIÓN:
+  - Addis Standard | https://addisstandard.com/ | Nivel A | EN | Digital/revista | Etiopía pluralista
+
+  ESTATAL / OFICIAL:
+  - Ethiopian News Agency | https://www.ena.et/web/eng | Nivel C | EN | Agencia estatal | Etiopía / gobierno
+
+EGIPTO:
+
+  IZQUIERDA / PROGRESISTA:
+  - Mada Masr | https://www.madamasr.com/en | Nivel A | AR/EN | Digital | Egipto pluralista
+
+  ESTATAL / OFICIAL:
+  - Ahram Online | https://english.ahram.org.eg/ | Nivel C | AR/EN | Diario estatal | Egipto estatal
+
+MARRUECOS:
+
+  INDEPENDIENTE / INVESTIGACIÓN / VERIFICACIÓN:
+  - Le Desk | https://ledesk.ma/ | Nivel A | FR | Digital | Marruecos crítico
+
+  ESTATAL / OFICIAL:
+  - MAP | https://www.mapnews.ma/en | Nivel C | AR/FR/EN | Agencia estatal | Marruecos / monarquía
+
+TÚNEZ:
+
+  IZQUIERDA / PROGRESISTA:
+  - Inkyfada | https://inkyfada.com/en/ | Nivel A | AR/FR/EN | Digital sin lucro | Túnez pluralista
+
+  ESTATAL / OFICIAL:
+  - Tunis Afrique Presse (TAP) | https://www.tap.info.tn/en | Nivel C | AR/FR/EN | Agencia estatal | Túnez estatal
+
+==========================================================================================
+AMÉRICA LATINA
+==========================================================================================
+
+ARGENTINA:
+
+  DERECHA / CONSERVADOR:
+  - La Nación | https://www.lanacion.com.ar/ | Nivel A | ES | Diario | Prooccidental / mercado
+  - Clarín | https://www.clarin.com/ | Nivel B | ES | Diario/grupo | Prooccidental / mercado
+  - Infobae | https://www.infobae.com/ | Nivel B | ES | Digital | Prooccidental
+  - La Derecha Diario | https://derechadiario.com.ar/ | Nivel D | ES | Digital | Prooccidental / libertario
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - Perfil | https://www.perfil.com/ | Nivel B | ES | Diario/digital | Argentina plural
+  - Ámbito Financiero | https://www.ambito.com/ | Nivel B | ES | Diario económico | Regional / mercado
+  - Chequeado | https://chequeado.com/ | Nivel A | ES | Verificación sin lucro | Fact-check
+  - Noticias Argentinas | https://noticiasargentinas.com/ | Nivel B | ES | Agencia privada | Argentina mainstream
+
+  IZQUIERDA / PROGRESISTA:
+  - Página/12 | https://www.pagina12.com.ar/ | Nivel B | ES | Diario | Latinoamericanista / anti-neoliberal
+  - El Destape | https://www.eldestapeweb.com/ | Nivel C | ES | Digital/TV | Anti-neoliberal / regionalista
+  - La Izquierda Diario | https://www.laizquierdadiario.com/ | Nivel C | ES | Digital | Antiimperialista
+  - El Grito del Sur | https://elgritodelsur.com.ar/ | Nivel B | ES | Digital cooperativo | Latinoamericanista / soberanista
+  - Buenos Aires Herald | https://buenosairesherald.com/ | Nivel B | EN | Digital | Argentina internacional
+
+  ESTATAL / OFICIAL:
+  - Televisión Pública Argentina | https://www.tvpublica.com.ar/ | Nivel C | ES | TV estatal | Argentina estatal
+  - Radio Nacional Argentina | https://www.radionacional.com.ar/ | Nivel C | ES | Radio estatal | Argentina estatal/federal
+
+ARGENTINA/REGIONAL:
+
+  IZQUIERDA / PROGRESISTA:
+  - NODAL / InfoNODAL | https://www.nodal.am/ | Nivel B | ES | Agencia/portal regional | Antiimperialista / integración regional
+
+MÉXICO:
+
+  DERECHA / CONSERVADOR:
+  - Reforma | https://www.reforma.com/ | Nivel A | ES | Diario | Promercado / crítico del gobierno
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - El Universal | https://www.eluniversal.com.mx/ | Nivel B | ES | Diario | México institucional
+  - Milenio | https://www.milenio.com/ | Nivel B | ES | TV/diario | México mainstream
+  - Canal Once | https://canalonce.mx/ | Nivel B | ES | TV pública | México estatal/público
+
+  IZQUIERDA / PROGRESISTA:
+  - La Jornada | https://www.jornada.com.mx/ | Nivel B | ES | Diario | Latinoamericanista / antiimperialista
+  - Aristegui Noticias | https://aristeguinoticias.com/ | Nivel A | ES | Digital/radio | Crítica del poder
+  - Proceso | https://www.proceso.com.mx/ | Nivel A | ES | Revista | Crítica del poder
+  - Desinformémonos | https://desinformemonos.org/ | Nivel B | ES | Digital independiente | Anticapitalista / pueblos originarios
+  - Pie de Página | https://piedepagina.mx/ | Nivel A | ES | Digital independiente | México pluralista
+  - SinEmbargo | https://www.sinembargo.mx/ | Nivel B | ES | Digital | México progresista
+  - Contralínea | https://contralinea.com.mx/ | Nivel B | ES | Revista/digital investigativo | Antiintervencionista
+  - Rompeviento TV | https://rompeviento.tv/ | Nivel B | ES | TV digital independiente | Anti-neoliberal
+
+  INDEPENDIENTE / INVESTIGACIÓN / VERIFICACIÓN:
+  - Animal Político | https://animalpolitico.com/ | Nivel A | ES | Digital | México pluralista
+
+  ESTATAL / OFICIAL:
+  - Canal Catorce | https://canalcatorce.tv/ | Nivel C | ES | TV pública | México estatal
+
+BRASIL:
+
+  DERECHA / CONSERVADOR:
+  - O Estado de S. Paulo | https://www.estadao.com.br/ | Nivel A | PT | Diario | Promercado
+  - O Globo | https://oglobo.globo.com/ | Nivel B | PT | Diario/grupo | Prooccidental / mercado
+  - Jovem Pan | https://jovempan.com.br/ | Nivel C | PT | Radio/TV | Conservador / pro-EE.UU.
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - Folha de S.Paulo | https://www1.folha.uol.com.br/internacional/en/ | Nivel A | PT/EN | Diario | Occidental / mercado
+  - Agência Brasil | https://agenciabrasil.ebc.com.br/ | Nivel A | PT/EN/ES | Agencia pública | Brasil estatal/público
+  - TV Brasil | https://tvbrasil.ebc.com.br/ | Nivel B | PT | TV pública | Brasil estatal/público
+
+  IZQUIERDA / PROGRESISTA:
+  - CartaCapital | https://www.cartacapital.com.br/ | Nivel B | PT | Revista | Latinoamericanista
+  - Brasil de Fato | https://www.brasildefato.com.br/ | Nivel C | PT | Digital/radio | Antiimperialista
+
+  INDEPENDIENTE / INVESTIGACIÓN / VERIFICACIÓN:
+  - Aos Fatos | https://www.aosfatos.org/ | Nivel A | PT | Verificación | Fact-check
+
+COLOMBIA:
+
+  DERECHA / CONSERVADOR:
+  - El Tiempo | https://www.eltiempo.com/ | Nivel A | ES | Diario | Prooccidental / mercado
+  - Semana | https://www.semana.com/ | Nivel C | ES | Revista/digital | Prooccidental / conservador
+  - Noticias RCN | https://www.noticiasrcn.com/ | Nivel B | ES | TV/digital | Prooccidental
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - Caracol Radio | https://caracol.com.co/ | Nivel B | ES | Radio/digital | Iberoamericano / institucional
+  - ColombiaCheck | https://colombiacheck.com/ | Nivel A | ES | Verificación | Fact-check
+
+  IZQUIERDA / PROGRESISTA:
+  - El Espectador | https://www.elespectador.com/ | Nivel A | ES | Diario | Colombia liberal
+
+  INDEPENDIENTE / INVESTIGACIÓN / VERIFICACIÓN:
+  - Cambio | https://cambiocolombia.com/ | Nivel A | ES | Revista/digital | Colombia plural
+  - La Silla Vacía | https://www.lasillavacia.com/ | Nivel A | ES | Digital | Colombia plural
+
+  ESTATAL / OFICIAL:
+  - RTVC Noticias | https://www.rtvcnoticias.com/ | Nivel C | ES | TV/digital público | Colombia estatal
+
+VENEZUELA:
+
+  DERECHA / CONSERVADOR:
+  - La Patilla | https://www.lapatilla.com/ | Nivel C | ES | Digital | Anti-chavista / prooccidental
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - Globovisión | https://www.globovision.com/ | Nivel C | ES | TV/digital | Venezuela institucional
+  - TalCual | https://talcualdigital.com/ | Nivel B | ES | Digital | Anti-gobierno
+
+  INDEPENDIENTE / INVESTIGACIÓN / VERIFICACIÓN:
+  - Efecto Cocuyo | https://efectococuyo.com/ | Nivel A | ES | Digital | Venezuela pluralista
+  - El Pitazo | https://elpitazo.net/ | Nivel A | ES | Digital/radio | Venezuela pluralista
+  - Cazadores de Fake News | https://www.cazadoresdefakenews.info/ | Nivel A | ES | Verificación | Fact-check
+
+  ESTATAL / OFICIAL:
+  - Telesur | https://www.telesurtv.net/ | Nivel D | ES | TV multiestatal | Bolivariano / antiimperialista
+  - VTV | https://www.vtv.gob.ve/ | Nivel D | ES | TV estatal | Bolivariano / gobierno
+  - Últimas Noticias | https://ultimasnoticias.com.ve/ | Nivel C | ES | Diario | Bolivariano
+
+CUBA:
+
+  IZQUIERDA / PROGRESISTA:
+  - OnCuba | https://oncubanews.com/ | Nivel B | ES/EN | Digital | Puente Cuba-diáspora
+
+  ESTATAL / OFICIAL:
+  - Granma | https://www.granma.cu/ | Nivel D | ES | Diario oficial | Cuba / antiimperialista
+  - Cubadebate | http://www.cubadebate.cu/ | Nivel D | ES | Digital estatal | Cuba / antiimperialista
+
+CUBA/EXILIO:
+
+  DERECHA / CONSERVADOR:
+  - Diario de Cuba | https://diariodecuba.com/ | Nivel C | ES | Digital | Anti-gobierno cubano
+
+  INDEPENDIENTE / INVESTIGACIÓN / VERIFICACIÓN:
+  - 14ymedio | https://www.14ymedio.com/ | Nivel B | ES | Digital | Anti-gobierno cubano
+
+NICARAGUA:
+
+  DERECHA / CONSERVADOR:
+  - La Prensa | https://www.laprensani.com/ | Nivel B | ES | Diario/digital | Anti-Ortega
+
+  ESTATAL / OFICIAL:
+  - El 19 Digital | https://www.el19digital.com/ | Nivel D | ES | Digital oficial | Sandinista / antiimperialista
+
+NICARAGUA/EXILIO:
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - 100% Noticias | https://100noticias.com.ni/ | Nivel C | ES | TV/digital | Anti-Ortega
+
+  IZQUIERDA / PROGRESISTA:
+  - Confidencial | https://confidencial.digital/ | Nivel A | ES | Digital | Anti-autoritarismo
+
+CHILE:
+
+  DERECHA / CONSERVADOR:
+  - El Mercurio | https://www.emol.com/ | Nivel B | ES | Diario/grupo | Prooccidental / mercado
+  - La Tercera | https://www.latercera.com/ | Nivel A | ES | Diario | Prooccidental / mercado
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - Cooperativa | https://cooperativa.cl/ | Nivel A | ES | Radio/digital | Chile mainstream
+  - BioBioChile | https://www.biobiochile.cl/ | Nivel B | ES | Radio/digital | Chile regional
+
+  IZQUIERDA / PROGRESISTA:
+  - El Mostrador | https://www.elmostrador.cl/ | Nivel B | ES | Digital | Chile progresista
+  - El Ciudadano | https://www.elciudadano.com/ | Nivel B | ES | Digital/impreso | Antiimperialista / soberanista
+
+  INDEPENDIENTE / INVESTIGACIÓN / VERIFICACIÓN:
+  - CIPER | https://www.ciperchile.cl/ | Nivel A | ES | Investigativo sin lucro | Chile pluralista
+
+  ESTATAL / OFICIAL:
+  - TVN / 24 Horas | https://www.24horas.cl/ | Nivel B | ES | TV pública | Chile estatal/público
+
+PERÚ:
+
+  DERECHA / CONSERVADOR:
+  - El Comercio | https://elcomercio.pe/ | Nivel B | ES | Diario/grupo | Promercado
+
+  IZQUIERDA / PROGRESISTA:
+  - La República | https://larepublica.pe/ | Nivel B | ES | Diario | Perú progresista
+
+  INDEPENDIENTE / INVESTIGACIÓN / VERIFICACIÓN:
+  - OjoPúblico | https://ojo-publico.com/ | Nivel A | ES | Investigativo sin lucro | Perú pluralista
+
+  ESTATAL / OFICIAL:
+  - Agencia Andina | https://andina.pe/agencia/ | Nivel C | ES/EN | Agencia estatal | Perú estatal
+  - TV Perú Noticias | https://www.tvperu.gob.pe/noticias | Nivel C | ES | TV estatal | Perú estatal
+
+BOLIVIA:
+
+  DERECHA / CONSERVADOR:
+  - El Deber | https://eldeber.com.bo/ | Nivel B | ES | Diario | Oriente / promecado
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - Agencia de Noticias Fides | https://www.noticiasfides.com/ | Nivel A | ES | Agencia | Bolivia plural
+
+  IZQUIERDA / PROGRESISTA:
+  - La Razón | https://www.la-razon.com/ | Nivel B | ES | Diario | Bolivia nacional-popular
+
+  ESTATAL / OFICIAL:
+  - Agencia Boliviana de Información (ABI) | https://abi.bo/ | Nivel C | ES | Agencia estatal | Bolivia estatal
+
+ECUADOR:
+
+  CENTRO / FACTUAL / SERVICIO PÚBLICO:
+  - Primicias | https://www.primicias.ec/ | Nivel A | ES | Digital | Ecuador plural
+
+  IZQUIERDA / PROGRESISTA:
+  - GK | https://gk.city/ | Nivel A | ES | Digital | Ecuador pluralista
+
+  ESTATAL / OFICIAL:
+  - Ecuador TV | https://www.ecuadortv.ec/ | Nivel C | ES | TV pública | Ecuador estatal
+
+URUGUAY:
+
+  DERECHA / CONSERVADOR:
+  - El País Uruguay | https://www.elpais.com.uy/ | Nivel A | ES | Diario | Uruguay liberal-conservador
+
+  IZQUIERDA / PROGRESISTA:
+  - la diaria | https://ladiaria.com.uy/ | Nivel A | ES | Diario cooperativo | Uruguay progresista
+
+  ESTATAL / OFICIAL:
+  - Canal 5 / Medios Públicos | https://www.canal5.com.uy/ | Nivel B | ES | TV pública | Uruguay estatal/público
+
+==========================================================================================
+NOTAS PARA EL PROGRAMADOR
+==========================================================================================
+1. El separador de campos es el carácter |.
+2. Las regiones, países y orientaciones aparecen como encabezados.
+3. Conservar siempre el nivel A/B/C/D: define cómo debe tratarse editorialmente el medio.
+4. Para automatización, no sumar republicaciones de una misma agencia como confirmaciones independientes.
+5. Una noticia sensible debe contrastarse con fuente primaria, agencia, medio local y parte enfrentada.

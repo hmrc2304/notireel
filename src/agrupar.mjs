@@ -82,8 +82,16 @@ function nuevoUF(n) {
   return { raiz, unir: (a, b) => { const [ra, rb] = [raiz(a), raiz(b)]; if (ra !== rb) padre[rb] = ra; } };
 }
 
-/** Primera pasada: clusters por similitud léxica. */
-export function agruparPorTexto(items, { umbral = 0.26 } = {}) {
+/**
+ * Primera pasada: clusters por similitud léxica.
+ *
+ * El umbral sube con el tamaño del corpus. Con 700 noticias 0.26 andaba bien;
+ * con 3.600 empezó a juntar cosas que no van (una nota de Kazajistán con una de
+ * Colombia), porque cuantas más noticias hay, más fácil es que dos compartan
+ * tokens por casualidad.
+ */
+export function agruparPorTexto(items, { umbral = null } = {}) {
+  umbral ??= items.length > 2000 ? 0.38 : items.length > 1200 ? 0.32 : 0.26;
   const vs = vectorizar(items);
   const uf = nuevoUF(items.length);
 
@@ -120,19 +128,36 @@ export function agruparPorTexto(items, { umbral = 0.26 } = {}) {
   return [...grupos.values()].map(armarGrupo);
 }
 
+/** Un titular en ruso o en chino no sirve de referencia para una nota en español. */
+const LATINO = /^[\p{Script=Latin}\p{N}\p{P}\p{Zs}¿¡«»""''—–]+$/u;
+
 function armarGrupo(noticias) {
   const medios = [...new Set(noticias.map((n) => n.medio))];
   const pesoMedios = medios.reduce((s, m) => s + (noticias.find((n) => n.medio === m)?.peso ?? 1), 0);
   const masNueva = noticias.reduce((a, b) => (new Date(a.fecha) > new Date(b.fecha) ? a : b));
 
+  // El titular de referencia se elige entre los que están en alfabeto latino:
+  // con medios rusos, chinos o árabes en el catálogo, el de más peso puede venir
+  // en cirílico y queda como titular de un grupo que se va a redactar en español.
+  const ordenadas = [...noticias].sort((a, b) => b.peso - a.peso || b.resumen.length - a.resumen.length);
+  const legible = ordenadas.find((n) => LATINO.test(n.titulo)) ?? ordenadas[0];
+
+  // Los ejes distintos son la señal de que el hecho lo cuentan partes enfrentadas,
+  // no todos desde el mismo lado.
+  const ejes = [...new Set(noticias.map((n) => n.eje).filter(Boolean))];
+
   return {
-    titular: noticias.sort((a, b) => b.peso - a.peso || b.resumen.length - a.resumen.length)[0].titulo,
+    titular: legible.titulo,
     medios,
     cantidadMedios: medios.length,
     noticias,
     fecha: masNueva.fecha,
     imagen: noticias.find((n) => n.imagen)?.imagen ?? null,
     pesoMedios,
+    ejes,
+    // Un hecho que solo sostienen medios de nivel D no se puede dar por confirmado.
+    soloMonitoreo: noticias.every((n) => n.nivel === 'D'),
+    mejorNivel: ['A', 'B', 'C', 'D'].find((n) => noticias.some((x) => x.nivel === n)) ?? 'B',
   };
 }
 
