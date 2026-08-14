@@ -107,7 +107,10 @@ export async function publicarNota(nota, { imagenUrl = null, imagenGenerada = fa
       contraste: nota.contraste || null,
       certeza: nota.certeza,
       etiquetas: normalizarEtiquetas(nota.etiquetas),
-      imagen_url: imagenUrl ?? nota.imagen ?? null,
+      // Solo la imagen que logramos subir a nuestro bucket. Caer a la URL
+      // original del medio parece inofensivo y no lo es: varios bloquean el
+      // enlace directo, así que la nota queda con una imagen rota a la vista.
+      imagen_url: imagenUrl ?? null,
       imagen_generada: imagenGenerada,
       video_url: videoUrl,
       video_origen: videoOrigen,
