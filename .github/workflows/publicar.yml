@@ -1,0 +1,71 @@
+name: Publicar una pieza
+
+# El cron de GitHub no es puntual y a veces se saltea corridas, sobre todo en el
+# minuto 0 que es el más congestionado. Por eso dispara en el minuto 7.
+# Una corrida = una pieza. Con 24 corridas diarias sale una por hora, y de cada
+# tres una lleva video (el resto son carrusel y placa, que no consumen voz).
+on:
+  schedule:
+    - cron: '7 * * * *'
+  workflow_dispatch:
+    inputs:
+      lote:
+        description: 'Cuántas piezas producir en esta corrida'
+        default: '1'
+        type: string
+      avatar:
+        description: 'Presentador'
+        default: 'ana'
+        type: choice
+        options: [ana, mateo, sofia]
+
+concurrency:
+  group: publicar
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Instalar ffmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+
+      - name: Regenerar el marco
+        # El marco se compone con HTML y se captura con el Chrome que ya trae
+        # el runner. Es más barato rehacerlo que versionar el PNG.
+        run: node src/marco.mjs ${{ inputs.avatar || 'ana' }}
+
+      - name: Producir y publicar
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          KIE_API_KEY: ${{ secrets.KIE_API_KEY }}
+          SUPABASE_NOTIREEL_URL: ${{ secrets.SUPABASE_NOTIREEL_URL }}
+          SUPABASE_NOTIREEL_SERVICE_KEY: ${{ secrets.SUPABASE_NOTIREEL_SERVICE_KEY }}
+          NOTIREEL_SITIO: ${{ secrets.NOTIREEL_SITIO }}
+          VIDEOS_UNA_DE_CADA: ${{ vars.VIDEOS_UNA_DE_CADA || '3' }}
+          META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
+        run: node src/produccion.mjs --lote ${{ inputs.lote || '1' }} --avatar ${{ inputs.avatar || 'ana' }}
+
+      - name: Guardar las piezas si algo falló
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: salida-${{ github.run_id }}
+          path: |
+            salida/*.mp4
+            salida/placas/*.png
+          retention-days: 3
+          if-no-files-found: ignore

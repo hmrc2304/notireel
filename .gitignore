@@ -1,0 +1,9 @@
+﻿.env
+.env.local
+salida/
+node_modules/
+sitio/node_modules/
+sitio/.next/
+sitio/.vercel
+assets/marco-*.png
+docs/*.html

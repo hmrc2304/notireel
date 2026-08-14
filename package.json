@@ -1,0 +1,19 @@
+{
+  "name": "notiviral-motor",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Convierte las noticias de notiviral.com en Reels con avatar y los publica en Instagram y Facebook",
+  "scripts": {
+    "avatar": "node src/avatar.mjs",
+    "marco": "node src/marco.mjs",
+    "proxima": "node src/seleccion.mjs",
+    "prueba": "node src/motor.mjs --sin-publicar",
+    "publicar": "node src/motor.mjs",
+    "verificar": "node src/publicar.mjs --verificar",
+    "preparar": "node src/publicar.mjs --preparar"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
