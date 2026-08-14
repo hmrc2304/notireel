@@ -38,9 +38,20 @@ function parsear(archivo) {
 const local = parsear(path.join(RAIZ, '.env'));
 const hub = parsear(path.join(os.homedir(), '.env.apihub'));
 
+/**
+ * Limpia lo que suele ensuciar un valor de entorno sin que se vea:
+ * el BOM que PowerShell mete al escribir por pipe (queda dentro del secret de
+ * GitHub y revienta la cabecera HTTP con "character at index 0 has a value of
+ * 65279"), el \r de los archivos con CRLF, las comillas y los espacios.
+ */
+function limpiar(v) {
+  if (typeof v !== 'string') return v;
+  return v.replace(/^﻿/, '').replace(/\r/g, '').trim().replace(/^["']|["']$/g, '');
+}
+
 /** El entorno real (GitHub Actions) gana siempre; después el .env local; último el hub. */
 export function env(clave, obligatoria = true) {
-  const v = process.env[clave] || local[clave] || hub[clave];
+  const v = limpiar(process.env[clave]) || local[clave] || hub[clave];
   if (!v && obligatoria) throw new Error(`Falta la variable ${clave} (.env del proyecto o ~/.env.apihub)`);
   return v;
 }
