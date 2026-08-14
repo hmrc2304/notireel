@@ -260,6 +260,9 @@ function capturar(html, destino, ancho, alto) {
 
   execFileSync(navegador(), [
     '--headless=new', '--disable-gpu', '--hide-scrollbars',
+    // Obligatorios en los runners de Linux, inocuos en Windows: sin ellos el
+    // navegador aborta al no poder abrir su sandbox.
+    '--no-sandbox', '--disable-dev-shm-usage',
     '--force-device-scale-factor=1', `--window-size=${ancho},${alto}`,
     `--screenshot=${destino}`, pathToFileURL(tmp).href,
   ], { stdio: 'ignore', timeout: 120000 });

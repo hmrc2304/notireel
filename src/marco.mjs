@@ -139,6 +139,11 @@ export function generarMarco(avatarNombre = 'ana') {
     '--headless=new',
     '--disable-gpu',
     '--hide-scrollbars',
+    // Sin estos dos, el navegador muere con SIGABRT en los runners de Linux:
+    // no puede abrir su sandbox y el /dev/shm del contenedor le queda chico.
+    // En Windows no hacen falta, pero tampoco molestan.
+    '--no-sandbox',
+    '--disable-dev-shm-usage',
     '--default-background-color=00000000',
     '--force-device-scale-factor=1',
     '--window-size=1080,1920',
