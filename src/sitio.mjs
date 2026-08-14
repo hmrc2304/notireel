@@ -35,14 +35,24 @@ export function armarSlug(titular, fecha = new Date()) {
 }
 
 /**
- * Huella del hecho, para no volver a publicarlo mañana con otro titular.
- * Se arma con las URLs de origen, que son lo único verdaderamente estable.
+ * Huellas del hecho: TODAS sus URLs de origen, no solo la primera.
+ *
+ * Con una sola clave el anti-duplicados fallaba: entre dos corridas el mismo hecho
+ * llega con una lista de coberturas ligeramente distinta (los feeds rotan), así que
+ * la "primera URL ordenada" cambiaba y el hecho pasaba como nuevo. El sitio terminó
+ * con la misma noticia publicada dos veces bajo titulares parecidos.
+ *
+ * Registrando todas, alcanza con que UNA cobertura coincida para reconocerlo.
  */
-export function claveDelHecho(nota) {
-  const urls = (nota.fuentes ?? []).map((f) => f.url.split('?')[0]).sort();
-  if (urls.length) return urls[0].slice(0, 400);
-  return armarSlug(nota.titular);
+export function clavesDelHecho(nota) {
+  const urls = (nota.fuentes ?? [])
+    .map((f) => String(f.url).split('?')[0].slice(0, 400))
+    .filter(Boolean);
+  return urls.length ? [...new Set(urls)] : [armarSlug(nota.titular)];
 }
+
+/** Compatibilidad con el código que todavía pide una sola clave. */
+export const claveDelHecho = (nota) => clavesDelHecho(nota)[0];
 
 /** Postgres rechaza el insert entero si el array llega como texto suelto. */
 function normalizarEtiquetas(valor) {
@@ -58,10 +68,16 @@ async function pedir(ruta, opciones) {
   return texto ? JSON.parse(texto) : null;
 }
 
-/** ¿Ya publicamos este hecho? */
-export async function yaPublicado(clave) {
+/**
+ * ¿Ya publicamos este hecho? Basta con que UNA de sus coberturas esté registrada.
+ * Acepta la nota entera o una clave suelta.
+ */
+export async function yaPublicado(notaOClave) {
+  const claves = typeof notaOClave === 'string' ? [notaOClave] : clavesDelHecho(notaOClave);
+  const lista = claves.map((c) => `"${c.replace(/"/g, '')}"`).join(',');
+
   const filas = await pedir(
-    `hechos_vistos?select=clave,nota_id&clave=eq.${encodeURIComponent(clave)}&limit=1`,
+    `hechos_vistos?select=clave,nota_id&clave=in.(${encodeURIComponent(lista)})&limit=1`,
     { headers: cabeceras() },
   );
   return filas?.length > 0;
@@ -72,8 +88,8 @@ export async function yaPublicado(clave) {
  * dos hechos distintos pueden generar el mismo titular acortado.
  */
 export async function publicarNota(nota, { imagenUrl = null, imagenGenerada = false, videoUrl = null, videoOrigen = null } = {}) {
-  const clave = claveDelHecho(nota);
-  if (await yaPublicado(clave)) return { salteada: true, motivo: 'el hecho ya se publicó' };
+  const claves = clavesDelHecho(nota);
+  if (await yaPublicado(nota)) return { salteada: true, motivo: 'el hecho ya se publicó' };
 
   let slug = armarSlug(nota.titular, nota.fecha);
   const existe = await pedir(`notas?select=slug&slug=eq.${encodeURIComponent(slug)}&limit=1`, { headers: cabeceras() });
@@ -117,10 +133,12 @@ export async function publicarNota(nota, { imagenUrl = null, imagenGenerada = fa
     });
   }
 
+  // Una fila por cobertura: así el hecho se reconoce aunque mañana llegue con
+  // una lista de fuentes distinta.
   await pedir('hechos_vistos', {
     method: 'POST',
     headers: cabeceras({ Prefer: 'resolution=merge-duplicates,return=minimal' }),
-    body: JSON.stringify({ clave, nota_id: fila.id }),
+    body: JSON.stringify(claves.map((clave) => ({ clave, nota_id: fila.id }))),
   });
 
   return { salteada: false, id: fila.id, slug, url: `${env('NOTIREEL_SITIO', false) ?? 'https://notiviral.gemasdigitales.com'}/nota/${slug}` };
