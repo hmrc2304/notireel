@@ -26,7 +26,49 @@ const VACIAS = new Set([
   'that', 'this', 'these', 'those', 'have', 'has', 'was', 'were', 'been', 'will', 'what',
   'when', 'where', 'after', 'before', 'about', 'into', 'over', 'their', 'they', 'them',
   'says', 'said', 'dice', 'dijo', 'ser', 'son', 'era', 'fue', 'hoy', 'ayer', 'vivo',
+  // Las fechas no distinguen nada: TODA la portada del día las lleva, y encima
+  // hacen que dos notas de temas distintos se parezcan por compartir el día.
+  'lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo',
+  'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto',
+  'septiembre', 'setiembre', 'octubre', 'noviembre', 'diciembre',
+  'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday',
+  'january', 'february', 'march', 'april', 'june', 'july', 'august',
+  'september', 'october', 'november', 'december',
+  'directo', 'minuto', 'ahora', 'ultimos', 'ultimo', 'ultima', 'reportes',
 ]);
+
+/**
+ * Contenido de rutina, no hechos.
+ *
+ * Las emisoras publican su grilla como si fueran noticias ("Telenorte 2 -
+ * 14/08/26", "Atletismo: Europeo, en directo") y varios diarios reponen todos los
+ * días la misma nota de servicio con la fecha cambiada (el precio del dólar, el
+ * último temblor). Nada de eso es un hecho que se pueda contrastar entre medios,
+ * y como se repite a diario con vocabulario idéntico es lo que más ensucia los
+ * grupos.
+ */
+const RUTINA = [
+  /\b(en directo|en vivo)\b/i,
+  /\bminuto a minuto\b/i,
+  /\bel tiempo\b.*\d{1,2}\/\d{1,2}/i,
+  /\bprecio del (dolar|dólar|cafe|café)\b/i,
+  /\bd[oó]lar (blue |hoy|cierra|abre)/i,
+  /\ba cu[aá]nto (cerr[oó]|cotiza|opera)/i,
+  /\btipo de cambio\b/i,
+  /\b(temblor|sismos recientes) en .{2,20} hoy\b/i,
+  /\bhor[oó]scopo\b/i,
+  /\b(quiniela|t[oó]mbola|loter[ií]a|quini ?6|baloto|melate|chance|gordito)\b/i,
+  // Varios diarios reponen en el feed sus páginas de resultados electorales
+  // viejas, con la fecha de hoy y el año de la elección en el titular.
+  /\bresultados? de (las|la) elecci[oó]n(es)?\b.*\b(19|20)\d{2}\b/i,
+  /\belecciones (generales|legislativas|municipales)\b.*\b20[01]\d\b/i,
+  /- RTVE\.es$/i,
+  /\bver (ahora|gratis) en RTVE Play\b/i,
+  /\bTemporada \d+ - Episodio \d+/i,
+];
+
+/** ¿Es contenido de rutina en vez de un hecho? */
+export const esRutina = (titulo = '') => RUTINA.some((r) => r.test(titulo));
 
 function tokens(texto) {
   return texto
@@ -75,57 +117,83 @@ function coseno(a, b) {
   return s;
 }
 
-/* ── Union-Find: junta en cadena A-B y B-C sin comparar A con C ── */
-function nuevoUF(n) {
-  const padre = Array.from({ length: n }, (_, i) => i);
-  const raiz = (x) => (padre[x] === x ? x : (padre[x] = raiz(padre[x])));
-  return { raiz, unir: (a, b) => { const [ra, rb] = [raiz(a), raiz(b)]; if (ra !== rb) padre[rb] = ra; } };
-}
-
 /**
  * Primera pasada: clusters por similitud léxica.
  *
- * El umbral sube con el tamaño del corpus. Con 700 noticias 0.26 andaba bien;
- * con 3.600 empezó a juntar cosas que no van (una nota de Kazajistán con una de
- * Colombia), porque cuantas más noticias hay, más fácil es que dos compartan
- * tokens por casualidad.
+ * Cada noticia se compara contra el LÍDER del grupo, nunca contra un miembro
+ * cualquiera. Antes esto usaba union-find, que une en cadena: si A se parece a B
+ * y B a C, A y C terminan juntas aunque no tengan nada que ver. Con las noticias
+ * de rutina diaria ("Precio del dólar hoy viernes 14", "Temblor en Perú hoy
+ * viernes 14") esa cadena se disparaba y armaba un grupo imán: llegó a tener 120
+ * coberturas mezclando dólar, sismos, deportes y programación de televisión, y
+ * como el ranking premia la cantidad de medios, ese engendro salía primero.
+ *
+ * El umbral sube con el tamaño del corpus: cuantas más noticias hay, más fácil es
+ * que dos compartan tokens por casualidad.
  */
-export function agruparPorTexto(items, { umbral = null } = {}) {
+export function agruparPorTexto(entrada, { umbral = null } = {}) {
+  const items = entrada.filter((i) => !esRutina(i.titulo));
   umbral ??= items.length > 2000 ? 0.38 : items.length > 1200 ? 0.32 : 0.26;
   const vs = vectorizar(items);
-  const uf = nuevoUF(items.length);
 
-  // Índice invertido por los tokens de más peso: evita comparar todos contra todos.
-  const indice = new Map();
-  vs.forEach((v, i) => {
-    [...v.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8).forEach(([t]) => {
-      if (!indice.has(t)) indice.set(t, []);
-      indice.get(t).push(i);
-    });
-  });
+  const grupos = [];          // { centro: vector normalizado, suma, n, miembros }
+  const deToken = new Map();  // token -> grupos que lo tienen entre sus más pesados
 
-  const comparados = new Set();
-  for (const lista of indice.values()) {
-    if (lista.length > 60) continue; // token demasiado común, no discrimina
-    for (let a = 0; a < lista.length; a++) {
-      for (let b = a + 1; b < lista.length; b++) {
-        const [i, j] = [lista[a], lista[b]];
-        const par = i < j ? `${i}:${j}` : `${j}:${i}`;
-        if (comparados.has(par)) continue;
-        comparados.add(par);
-        if (coseno(vs[i], vs[j]) >= umbral) uf.unir(i, j);
-      }
+  const pesados = (v, cuantos = 8) =>
+    [...v.entries()].sort((a, b) => b[1] - a[1]).slice(0, cuantos).map(([t]) => t);
+
+  const indexar = (g, vector) => {
+    for (const t of pesados(vector)) {
+      if (!deToken.has(t)) deToken.set(t, new Set());
+      deToken.get(t).add(g);
     }
-  }
+  };
 
-  const grupos = new Map();
-  items.forEach((it, i) => {
-    const r = uf.raiz(i);
-    if (!grupos.has(r)) grupos.set(r, []);
-    grupos.get(r).push(it);
+  /** Promedio de los miembros, renormalizado para que el coseno siga valiendo. */
+  const recentrar = (g) => {
+    const centro = new Map();
+    let norma = 0;
+    for (const [t, s] of g.suma) {
+      const p = s / g.n;
+      centro.set(t, p);
+      norma += p * p;
+    }
+    norma = Math.sqrt(norma) || 1;
+    for (const [t, p] of centro) centro.set(t, p / norma);
+    g.centro = centro;
+  };
+
+  items.forEach((_, i) => {
+    const claves = pesados(vs[i]);
+
+    // Solo se miran los grupos que comparten algún token fuerte: comparar contra
+    // todos sería cuadrático sobre miles de noticias.
+    const candidatos = new Set();
+    for (const t of claves) for (const g of deToken.get(t) ?? []) candidatos.add(g);
+
+    let mejor = -1;
+    let mejorPuntaje = umbral;
+    for (const g of candidatos) {
+      const s = coseno(vs[i], grupos[g].centro);
+      if (s >= mejorPuntaje) { mejorPuntaje = s; mejor = g; }
+    }
+
+    if (mejor >= 0) {
+      const g = grupos[mejor];
+      g.miembros.push(i);
+      g.n++;
+      for (const [t, p] of vs[i]) g.suma.set(t, (g.suma.get(t) ?? 0) + p);
+      recentrar(g);
+      // El centro se movió: puede haber ganado tokens fuertes que antes no tenía.
+      indexar(mejor, g.centro);
+      return;
+    }
+
+    const nuevo = grupos.push({ centro: vs[i], suma: new Map(vs[i]), n: 1, miembros: [i] }) - 1;
+    indexar(nuevo, vs[i]);
   });
 
-  return [...grupos.values()].map(armarGrupo);
+  return grupos.map((g) => armarGrupo(g.miembros.map((i) => items[i])));
 }
 
 /** Un titular en ruso o en chino no sirve de referencia para una nota en español. */
@@ -239,7 +307,14 @@ async function fusionarConClaude(grupos, limite) {
   if (!res.ok) throw new Error(`Anthropic ${res.status}: ${(await res.text()).slice(0, 300)}`);
   const data = await res.json();
   const uso = data.content.find((b) => b.type === 'tool_use');
-  return uso?.input?.fusiones ?? [];
+
+  // Solo valen los números que estaban en la lista. Un índice de más no es una
+  // fusión posible sino un grupo que el modelo nunca vio, y fusionarlo pega
+  // cualquier cosa: así se coló la central nuclear de Almaraz adentro de la nota
+  // del Constitucional francés.
+  return (uso?.input?.fusiones ?? [])
+    .map((f) => (Array.isArray(f) ? f.filter((i) => Number.isInteger(i) && i >= 0 && i < candidatos.length) : []))
+    .filter((f) => f.length >= 2);
 }
 
 /**
@@ -257,7 +332,7 @@ export async function agrupar(items, { umbral = 0.26, revisar = 60, usarIA = tru
   const salida = [];
 
   for (const f of fusiones) {
-    const validos = f.filter((i) => Number.isInteger(i) && i >= 0 && i < grupos.length && !usados.has(i));
+    const validos = f.filter((i) => !usados.has(i));
     if (validos.length < 2) continue;
     validos.forEach((i) => usados.add(i));
     salida.push(armarGrupo(validos.flatMap((i) => grupos[i].noticias)));
