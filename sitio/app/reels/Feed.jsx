@@ -89,7 +89,7 @@ export default function Feed({ notas }) {
           </div>
 
           {i === activo && i === 0 && (
-            <div className="reel-pista" aria-hidden="true">Deslizá para seguir</div>
+            <div className="reel-pista" aria-hidden="true">Desliza para seguir</div>
           )}
         </section>
       ))}

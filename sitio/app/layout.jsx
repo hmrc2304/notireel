@@ -28,7 +28,16 @@ export const metadata = {
   alternates: { types: { 'application/rss+xml': '/feed.xml' } },
 };
 
-export const viewport = { themeColor: '#0E6B64' };
+// Sin width device-width el navegador móvil compone a 980px y después achica
+// todo: el texto queda cortado a la derecha y el feed vertical no entra en
+// pantalla. En un sitio que vive del tráfico de redes eso rompe la experiencia
+// del 90% de las visitas.
+export const viewport = {
+  themeColor: '#0E6B64',
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+};
 
 export default function RootLayout({ children }) {
   return (
