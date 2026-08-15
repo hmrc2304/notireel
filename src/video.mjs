@@ -18,9 +18,24 @@ import { pathToFileURL } from 'node:url';
 import { DIRS , esPrincipal } from './config.mjs';
 import { construirASS } from './subtitulos.mjs';
 
-const W = 1080, H = 1920, FPS = 30;
-const ALTO_FOTO = 1250;   // la foto ocupa de 0 a 1250; abajo va el bloque de texto
+const FPS = 30;
 const COLA = 1.1;         // segundos de aire al final para que no corte seco
+
+/**
+ * Los dos formatos que se producen de cada noticia.
+ *
+ * El vertical va a /reels y a las redes; el horizontal, al reproductor de la
+ * nota, donde un 9:16 a ancho completo ocupa mil trescientos píxeles de alto y
+ * empuja el texto fuera de la pantalla.
+ *
+ * En vertical la foto ocupa una franja de arriba y el texto vive abajo. En
+ * horizontal la foto es todo el cuadro y el texto se apoya sobre el degradado,
+ * así que `altoFoto` es el alto entero.
+ */
+const FORMATOS = {
+  vertical: { ancho: 1080, alto: 1920, altoFoto: 1250 },
+  horizontal: { ancho: 1920, alto: 1080, altoFoto: 1080 },
+};
 
 const rel = (p) => path.relative(DIRS.raiz, p).replace(/\\/g, '/');
 
@@ -42,7 +57,8 @@ const MAX_FOTOS = 5; // más de cinco en treinta segundos se siente un pase de d
  * segundos sobre una única foto congelada se sienten eternos, y las coberturas
  * del mismo hecho ya traen sus propias imágenes, así que el material está.
  */
-export function componer({ fotos, foto, marco, mp3, ass, destino, duracion }) {
+export function componer({ fotos, foto, marco, mp3, ass, destino, duracion, formato = 'vertical' }) {
+  const { ancho: W, alto: H, altoFoto: ALTO_FOTO } = FORMATOS[formato] ?? FORMATOS.vertical;
   const lista = (fotos?.length ? fotos : [foto]).filter(Boolean);
   const total = duracion + COLA;
   const n = lista.length;
@@ -130,7 +146,8 @@ export function componer({ fotos, foto, marco, mp3, ass, destino, duracion }) {
  * normalizar resolución, fps y audio antes de concatenar: el demuxer `concat`
  * exige que coincidan y, si no lo hacen, el resultado se corrompe en silencio.
  */
-export function pegarIntro({ intro, cuerpo, destino }) {
+export function pegarIntro({ intro, cuerpo, destino, formato = 'vertical' }) {
+  const { ancho: W, alto: H } = FORMATOS[formato] ?? FORMATOS.vertical;
   const filtros = [
     `[0:v]scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},fps=${FPS},setsar=1[vi]`,
     `[1:v]scale=${W}:${H}:force_original_aspect_ratio=increase,crop=${W}:${H},fps=${FPS},setsar=1[vc]`,
@@ -157,6 +174,26 @@ export function pegarIntro({ intro, cuerpo, destino }) {
 }
 
 /**
+ * Elige la intro del presentador.
+ *
+ * Si hay varias (`intro-ana.mp4`, `intro-ana-2.mp4`, …) se reparten entre las
+ * noticias: con una sola, el que mira tres piezas seguidas escucha tres veces la
+ * misma frase y el canal suena a robot. La elección va por el id de la nota y no
+ * al azar, así regenerar un video no le cambia la apertura.
+ */
+export function introDe(avatar, semilla = '') {
+  const opciones = fs.readdirSync(DIRS.assets)
+    .filter((f) => new RegExp(`^intro-${avatar}(-\\d+)?\\.mp4$`).test(f))
+    .sort();
+
+  if (!opciones.length) return `intro-${avatar}.mp4`;
+
+  let n = 0;
+  for (const c of String(semilla)) n = (n * 31 + c.charCodeAt(0)) >>> 0;
+  return opciones[n % opciones.length];
+}
+
+/**
  * Arma el video completo de una noticia ya guionada y locutada.
  *
  * `fondo` permite reusar una imagen ya conseguida (la de la nota del sitio) en
@@ -166,6 +203,7 @@ export function pegarIntro({ intro, cuerpo, destino }) {
 export async function armarVideo({
   nota, guion, locucion, avatar = 'ana',
   fondo = null, fondoGenerado = false, conIntro = true, extras = [],
+  formatos = ['vertical', 'horizontal'],
 }) {
   const marco = path.join(DIRS.assets, `marco-${avatar}.png`);
   if (!fs.existsSync(marco)) throw new Error(`Falta el marco de ${avatar}. Corré: node src/marco.mjs ${avatar}`);
@@ -185,8 +223,11 @@ export async function armarVideo({
     if (generada) console.log('  fondo: foto propia generada');
   }
 
-  const ass = `${base}.ass`;
-  fs.writeFileSync(ass, construirASS({
+  // La foto de la nota primero y las de las otras coberturas detrás: el hecho lo
+  // cubrieron varios medios y cada uno mandó su propia imagen.
+  const fotos = [foto, ...extras.filter((f) => f && f !== foto)].slice(0, MAX_FOTOS);
+
+  const comun = {
     hook: guion.hook,
     seccion: nota.seccion,
     palabras: locucion.palabras,
@@ -194,27 +235,41 @@ export async function armarVideo({
     imagenGenerada: generada,
     certeza: nota.certeza ?? null,
     mediosCount: nota.medios_count ?? nota.fuentes?.length ?? 0,
-  }), 'utf8');
+  };
 
-  // La foto de la nota primero y las de las otras coberturas detrás: el hecho lo
-  // cubrieron varios medios y cada uno mandó su propia imagen.
-  const fotos = [foto, ...extras.filter((f) => f && f !== foto)].slice(0, MAX_FOTOS);
+  const salidas = {};
 
-  const cuerpo = path.join(DIRS.salida, `${id}-cuerpo.mp4`);
-  componer({ fotos, marco, mp3: locucion.mp3, ass, destino: cuerpo, duracion: locucion.duracion });
+  for (const formato of formatos) {
+    const sufijo = formato === 'vertical' ? '' : `-${formato}`;
+    const marcoF = path.join(DIRS.assets, `marco-${avatar}${sufijo}.png`);
+    if (!fs.existsSync(marcoF)) {
+      console.error(`  ! falta ${path.basename(marcoF)}, salteo el ${formato}`);
+      continue;
+    }
 
-  const intro = path.join(DIRS.assets, `intro-${avatar}.mp4`);
-  const destino = path.join(DIRS.salida, `${id}.mp4`);
+    const ass = `${base}${sufijo}.ass`;
+    fs.writeFileSync(ass, construirASS({ ...comun, formato }), 'utf8');
 
-  if (conIntro && fs.existsSync(intro)) {
-    pegarIntro({ intro, cuerpo, destino });
-    fs.unlinkSync(cuerpo);
-    return destino;
+    const cuerpo = path.join(DIRS.salida, `${id}-cuerpo${sufijo}.mp4`);
+    componer({ fotos, marco: marcoF, mp3: locucion.mp3, ass, destino: cuerpo, duracion: locucion.duracion, formato });
+
+    const destino = path.join(DIRS.salida, `${id}${sufijo}.mp4`);
+    const intro = path.join(DIRS.assets, introDe(avatar, nota.slug ?? nota.id ?? ''));
+
+    // La intro del presentador está filmada en vertical: en el horizontal se
+    // recortaría a una franja de la cara, así que ahí el video arranca directo.
+    if (conIntro && formato === 'vertical' && fs.existsSync(intro)) {
+      pegarIntro({ intro, cuerpo, destino, formato });
+      fs.unlinkSync(cuerpo);
+    } else {
+      fs.renameSync(cuerpo, destino);
+    }
+
+    salidas[formato] = destino;
   }
 
-  // Sin intro generada todavía, el cuerpo ya es un video publicable.
-  fs.renameSync(cuerpo, destino);
-  return destino;
+  if (!salidas.vertical && !salidas.horizontal) throw new Error('no se pudo componer ningún formato');
+  return formatos.length === 1 ? salidas[formatos[0]] : salidas;
 }
 
 if (esPrincipal(import.meta.url)) {

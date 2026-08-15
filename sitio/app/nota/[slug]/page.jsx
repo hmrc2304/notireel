@@ -76,8 +76,19 @@ export default async function Nota({ params }) {
 
         {nota.video_url ? (
           <>
-            <video className="video-nota" controls preload="metadata" poster={nota.imagen_url ?? undefined}>
-              <source src={nota.video_url} type="video/mp4" />
+            {/*
+              El 16:9 cuando existe. El vertical mide 1080x1920: a ancho completo
+              ocupa más de mil trescientos píxeles de alto y empuja el cuerpo de
+              la nota fuera de la pantalla. Las notas viejas, que solo tienen el
+              vertical, se muestran contenidas.
+            */}
+            <video
+              className={`video-nota ${nota.video_horizontal_url ? '' : 'vertical'}`}
+              controls
+              preload="metadata"
+              poster={nota.imagen_url ?? undefined}
+            >
+              <source src={nota.video_horizontal_url ?? nota.video_url} type="video/mp4" />
             </video>
             {nota.video_origen === 'oficial' && (
               <p className="pie-imagen">Video de fuente oficial, reproducido con fines informativos.</p>

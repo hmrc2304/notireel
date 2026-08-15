@@ -257,12 +257,15 @@ export async function subirVideo(mp4, slug) {
 }
 
 /** Cuelga el video de una nota ya publicada. */
-export async function marcarVideo(slug, { videoUrl, duracion, origen = 'propio' }) {
+export async function marcarVideo(slug, { videoUrl, horizontalUrl = null, duracion, origen = 'propio' }) {
   await pedir(`notas?slug=eq.${encodeURIComponent(slug)}`, {
     method: 'PATCH',
     headers: cabeceras({ Prefer: 'return=minimal' }),
     body: JSON.stringify({
       video_url: videoUrl,
+      // El horizontal es opcional: si su render falló, la nota se queda con el
+      // vertical antes que sin video.
+      ...(horizontalUrl ? { video_horizontal_url: horizontalUrl } : {}),
       video_duracion: duracion ?? null,
       video_origen: origen,
       actualizada_en: new Date().toISOString(),

@@ -73,7 +73,7 @@ async function producirVideo(nota, publicada, fondo, avatar, voz, fondoGenerado)
   const extras = await fotosDeCoberturas(nota.fuentes, base, bajarImagen, { evitar: [nota.imagen] });
   if (extras.length) console.log(`    ${extras.length} fotos más de otras coberturas`);
 
-  const mp4 = await armarVideo({
+  const piezas = await armarVideo({
     nota: { ...nota, id: publicada.slug, slug: publicada.slug },
     guion,
     locucion,
@@ -83,10 +83,18 @@ async function producirVideo(nota, publicada, fondo, avatar, voz, fondoGenerado)
     extras,
   });
 
+  const mp4 = piezas.vertical;
   const url = await subirVideo(mp4, publicada.slug);
-  await marcarVideo(publicada.slug, { videoUrl: url, duracion: locucion.duracion });
+
+  // El 16:9 es para el reproductor de la nota; si su render falló, la nota se
+  // queda con el vertical antes que sin video.
+  const horizontalUrl = piezas.horizontal
+    ? await subirVideo(piezas.horizontal, `${publicada.slug}-16x9`)
+    : null;
+
+  await marcarVideo(publicada.slug, { videoUrl: url, horizontalUrl, duracion: locucion.duracion });
   const total = locucion.duracion + 9.1; // los 8s de intro más la cola del cierre
-  console.log(`    video: ${(fs.statSync(mp4).size / 1024 / 1024).toFixed(1)} MB, ${total.toFixed(0)}s en total (${locucion.duracion.toFixed(0)}s de locución)`);
+  console.log(`    video: ${(fs.statSync(mp4).size / 1024 / 1024).toFixed(1)} MB, ${total.toFixed(0)}s en total (${locucion.duracion.toFixed(0)}s de locución)${horizontalUrl ? ' + 16:9' : ''}`);
 
   return { mp4, url, guion, duracion: locucion.duracion };
 }

@@ -1,11 +1,17 @@
 /**
- * Intro de marca: el presentador hablando a cámara, generado UNA sola vez con
- * Veo 3 y reusado en todos los videos.
+ * Intros de marca: el presentador hablando a cámara, generadas una sola vez con
+ * Veo 3 y reusadas en todos los videos.
  *
- * Por qué una sola y no una por noticia: para que la boca coincida con cada hook
- * habría que generar un clip nuevo cada vez, y a 24 videos por día son cientos de
- * dólares al mes. Con una frase fija de marca el lipsync es real, el costo se paga
- * una vez y la repetición juega a favor: la gente reconoce la cortina.
+ * Por qué no una por noticia: para que la boca coincida con cada texto habría que
+ * generar un clip nuevo cada vez, y a 24 videos por día son cientos de dólares al
+ * mes. Con frases fijas de marca el lipsync es real y el costo se paga una vez.
+ *
+ * Por qué VARIAS y no una sola: quien mira tres piezas seguidas escucha tres
+ * veces la misma frase y el canal suena a robot. Con media docena rotando, la
+ * cortina se sigue reconociendo pero no cansa.
+ *
+ *   node src/intro.mjs ana        genera la que falte
+ *   node src/intro.mjs ana 3      genera solo la número 3
  */
 
 import fs from 'node:fs';
@@ -13,7 +19,18 @@ import path from 'node:path';
 import { env, DIRS, esPrincipal } from './config.mjs';
 
 const BASE = 'https://api.kie.ai/api/v1';
-const FRASE = 'Noti Reel. Las fuentes, a la vista.';
+/**
+ * Cada una es una apertura de noticiero distinta. Todas nombran la marca, que es
+ * lo que tiene que quedar, y ninguna promete algo que la pieza no cumple.
+ */
+const FRASES = [
+  'Notiviral. Las fuentes, a la vista.',
+  'Esto es Notiviral. Vamos con lo que pasó.',
+  'Notiviral. Lo que dicen los medios, comparado.',
+  'Acá Notiviral, con la noticia y sus fuentes.',
+  'Notiviral. Esto es lo que sabemos hasta ahora.',
+  'Bienvenidos a Notiviral. Arrancamos.',
+];
 
 const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -38,7 +55,8 @@ async function subirAvatar(avatarNombre) {
  * Genera el clip. El diálogo va DENTRO del prompt porque Veo sintetiza la voz y
  * el lipsync a partir de ahí; pedirlo aparte da una boca que no coincide.
  */
-export async function generarIntro(avatarNombre = 'ana') {
+export async function generarIntro(avatarNombre = 'ana', numero = 1) {
+  const FRASE = FRASES[(numero - 1) % FRASES.length];
   const imagen = await subirAvatar(avatarNombre);
   console.log(`  avatar publicado, generando el clip...`);
 
@@ -83,7 +101,9 @@ export async function generarIntro(avatarNombre = 'ana') {
       const mp4 = urls.find((u) => String(u).includes('.mp4')) ?? urls[0];
       if (!mp4) throw new Error('Veo terminó sin devolver el mp4');
 
-      const destino = path.join(DIRS.assets, `intro-${avatarNombre}.mp4`);
+      // La primera va sin número: es la que ya usaban los videos existentes.
+      const sufijo = numero === 1 ? '' : `-${numero}`;
+      const destino = path.join(DIRS.assets, `intro-${avatarNombre}${sufijo}.mp4`);
       const bin = await fetch(mp4).then((r) => r.arrayBuffer());
       fs.writeFileSync(destino, Buffer.from(bin));
       return destino;

@@ -16,13 +16,28 @@ const MAX_PALABRAS = 4;
 const MAX_SEG = 2.4;
 
 /**
- * La franja de texto, entre el pie de la foto y la barra del sitio.
+ * Geometría por formato.
  *
- * El titular arranca en HOOK_Y y baja; el subtítulo termina en SUB_Y y sube. Así
- * el aire que queda en el medio no lo puede comer ninguno de los dos.
+ * El titular arranca en `hookY` y baja; el subtítulo termina en `subY` y sube.
+ * Así el aire que queda en el medio no lo puede comer ninguno de los dos.
+ *
+ * En 16:9 hay la mitad de alto y el doble de ancho: entran más caracteres por
+ * línea y el texto tiene que ser más chico, o tapa la escena.
  */
-const HOOK_Y = 1268;
-const SUB_Y = 1700;
+const GEOMETRIA = {
+  vertical: {
+    ancho: 1080, alto: 1920,
+    hookY: 1268, subY: 1700, hookFuente: 96, subFuente: 64,
+    chipX: 1020, chipY: 74, selloX: 52, selloY: 150,
+    maxChars: 20,
+  },
+  horizontal: {
+    ancho: 1920, alto: 1080,
+    hookY: 700, subY: 1010, hookFuente: 72, subFuente: 48,
+    chipX: 1860, chipY: 54, selloX: 56, selloY: 126,
+    maxChars: 34,
+  },
+};
 
 /** &HAABBGGRR: alfa invertido y canales al revés que en CSS. */
 function color(hex, alfa = 0) {
@@ -41,7 +56,7 @@ function t(seg) {
 }
 
 /** Agrupa palabras en bloques cortos respetando la puntuación. */
-export function agrupar(palabras) {
+export function agrupar(palabras, maxChars = MAX_CHARS) {
   const bloques = [];
   let actual = [];
 
@@ -59,14 +74,14 @@ export function agrupar(palabras) {
     const largo = actual.reduce((n, x) => n + x.palabra.length + 1, 0) + p.palabra.length;
     const duracion = actual.length ? p.hasta - actual[0].desde : 0;
 
-    if (actual.length && (largo > MAX_CHARS || actual.length >= MAX_PALABRAS || duracion > MAX_SEG)) cerrar();
+    if (actual.length && (largo > maxChars || actual.length >= MAX_PALABRAS || duracion > MAX_SEG)) cerrar();
     actual.push(p);
     // Un cierre de frase corta el bloque: el subtítulo respira donde respira la voz.
     if (/[.,;:!?]$/.test(p.palabra)) cerrar();
   }
   cerrar();
 
-  const juntos = pegarColas(bloques);
+  const juntos = pegarColas(bloques, maxChars);
 
   // Sin huecos: cada bloque dura hasta que arranca el siguiente.
   for (let i = 0; i < juntos.length - 1; i++) {
@@ -82,13 +97,13 @@ export function agrupar(palabras) {
  * ocupando un subtítulo entero: se lee como si faltara algo. Se juntan mientras
  * el bloque resultante siga entrando en una línea.
  */
-function pegarColas(bloques) {
+function pegarColas(bloques, maxChars = MAX_CHARS) {
   const out = [];
 
   for (const b of bloques) {
     const previo = out[out.length - 1];
     const corto = b.texto.split(' ').length <= 2 && b.texto.length <= 10;
-    const cabe = previo && `${previo.texto} ${b.texto}`.length <= MAX_CHARS + 6;
+    const cabe = previo && `${previo.texto} ${b.texto}`.length <= maxChars + 6;
 
     if (corto && cabe) {
       previo.texto = `${previo.texto} ${b.texto}`;
@@ -129,23 +144,24 @@ const CERTEZA = {
 
 export function construirASS({
   hook, seccion, palabras, duracion,
-  imagenGenerada = false, certeza = null, mediosCount = 0,
+  imagenGenerada = false, certeza = null, mediosCount = 0, formato = 'vertical',
 }) {
-  const bloques = agrupar(palabras);
+  const g = GEOMETRIA[formato] ?? GEOMETRIA.vertical;
+  const bloques = agrupar(palabras, g.maxChars);
   const fin = t(duracion + 1.2);
 
   const cabecera = `[Script Info]
 ScriptType: v4.00+
-PlayResX: 1080
-PlayResY: 1920
+PlayResX: ${g.ancho}
+PlayResY: ${g.alto}
 WrapStyle: 2
 ScaledBorderAndShadow: yes
 YCbCr Matrix: TV.709
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Hook,Anton,96,${color('#FFFFFF')},${color('#FFFFFF')},${color('#16233F')},${color('#000000', 120)},0,0,0,0,100,100,1,0,1,6,4,5,60,60,60,1
-Style: Sub,Montserrat,64,${color('#FFFFFF')},${color('#FFFFFF')},${color('#0B1220')},${color('#000000', 90)},1,0,0,0,100,100,0,0,1,5,3,5,60,60,60,1
+Style: Hook,Anton,${g.hookFuente},${color('#FFFFFF')},${color('#FFFFFF')},${color('#16233F')},${color('#000000', 120)},0,0,0,0,100,100,1,0,1,6,4,5,60,60,60,1
+Style: Sub,Montserrat,${g.subFuente},${color('#FFFFFF')},${color('#FFFFFF')},${color('#0B1220')},${color('#000000', 90)},1,0,0,0,100,100,0,0,1,5,3,5,60,60,60,1
 Style: Chip,Montserrat,36,${color('#FFFFFF')},${color('#FFFFFF')},${color('#0F1418')},${color('#000000', 255)},1,0,0,0,100,100,2,0,1,0,0,9,60,60,60,1
 Style: Aviso,Montserrat,27,${color('#E6ECF5')},${color('#E6ECF5')},${color('#0B0F12')},${color('#000000', 255)},0,0,0,0,100,100,0,0,1,3,0,3,60,60,60,1
 Style: Certeza,Montserrat,31,${color('#FFFFFF')},${color('#FFFFFF')},${color('#0F1418')},${color('#000000', 255)},1,0,0,0,100,100,1.4,0,1,0,0,7,60,60,60,1
@@ -188,7 +204,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
   // cualquier bloque que creciera se le metía encima. Anclados en direcciones
   // opuestas crecen hacia afuera y el aire del medio nunca se pierde.
   filas.push(
-    `Dialogue: 2,0:00:00.00,${fin},Hook,,0,0,0,,{\\pos(540,${HOOK_Y})\\an8\\fad(220,0)}${partirHook(hook)}`,
+    `Dialogue: 2,0:00:00.00,${fin},Hook,,0,0,0,,{\\pos(${g.ancho / 2},${g.hookY})\\an8\\fad(220,0)}${partirHook(hook)}`,
   );
 
   // Cuando el fondo no es una foto del hecho sino una imagen generada, se dice.
@@ -202,11 +218,11 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
   // Subtítulos: aparecen con un pop mínimo, sin animaciones que distraigan.
   // Si un bloque es una sola palabra larguísima, se encoge en vez de desbordar.
   for (const b of bloques) {
-    const exceso = b.texto.length / MAX_CHARS;
+    const exceso = b.texto.length / g.maxChars;
     const escala = exceso > 1 ? Math.max(62, Math.round(100 / exceso)) : 100;
     filas.push(
       `Dialogue: 3,${t(b.desde)},${t(b.hasta)},Sub,,0,0,0,,` +
-      `{\\pos(540,${SUB_Y})\\an2\\fscx${Math.round(escala * 0.93)}\\fscy93` +
+      `{\\pos(${g.ancho / 2},${g.subY})\\an2\\fscx${Math.round(escala * 0.93)}\\fscy93` +
       `\\t(0,110,\\fscx${escala}\\fscy100)}${escapar(b.texto)}`,
     );
   }

@@ -131,14 +131,20 @@ export async function procesar(trabajo) {
     });
     if (extras.length) console.log(`  ${extras.length} fotos más de otras coberturas`);
 
-    const mp4 = await armarVideo({
+    const piezas = await armarVideo({
       nota: { ...nota, id: publicada.slug, slug: publicada.slug },
       guion, locucion, avatar: trabajo.avatar ?? 'ana', fondo, fondoGenerado: generada, extras,
     });
 
-    resultado.video_url = await subirVideo(mp4, publicada.slug);
-    await marcarVideo(publicada.slug, { videoUrl: resultado.video_url, duracion: locucion.duracion });
-    console.log(`  video de ${(locucion.duracion + 9).toFixed(0)}s`);
+    resultado.video_url = await subirVideo(piezas.vertical, publicada.slug);
+    const horizontalUrl = piezas.horizontal
+      ? await subirVideo(piezas.horizontal, `${publicada.slug}-16x9`)
+      : null;
+
+    await marcarVideo(publicada.slug, {
+      videoUrl: resultado.video_url, horizontalUrl, duracion: locucion.duracion,
+    });
+    console.log(`  video de ${(locucion.duracion + 9).toFixed(0)}s${horizontalUrl ? ' (vertical y 16:9)' : ''}`);
   } else {
     const { armarCarrusel, armarPlaca } = await import('./tarjetas.mjs');
     const id = publicada.slug.slice(0, 24);
