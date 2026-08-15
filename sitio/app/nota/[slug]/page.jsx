@@ -50,7 +50,7 @@ export default async function Nota({ params }) {
     dateModified: nota.actualizada_en,
     articleSection: nota.seccion,
     inLanguage: 'es-AR',
-    publisher: { '@type': 'Organization', name: 'NotiReel' },
+    publisher: { '@type': 'Organization', name: 'NotiViral' },
     citation: (nota.fuentes ?? []).map((f) => ({
       '@type': 'CreativeWork',
       name: f.titulo,

@@ -14,15 +14,15 @@ const anton = localFont({
 export const metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITIO ?? 'https://notiviral.gemasdigitales.com'),
   title: {
-    default: 'NotiReel · Noticias del mundo con las fuentes a la vista',
-    template: '%s · NotiReel',
+    default: 'NotiViral · Noticias del mundo con las fuentes a la vista',
+    template: '%s · NotiViral',
   },
   description:
     'Noticias internacionales en video corto. Cada nota cruza lo que publican varios medios y organismos oficiales, y muestra en qué difieren.',
   openGraph: {
     type: 'website',
     locale: 'es_AR',
-    siteName: 'NotiReel',
+    siteName: 'NotiViral',
   },
   robots: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 },
   alternates: { types: { 'application/rss+xml': '/feed.xml' } },
@@ -46,8 +46,8 @@ export default function RootLayout({ children }) {
         <header className="cabecera">
           <div className="contenedor">
             <div className="cabecera-fila">
-              <a href="/" className="masthead" aria-label="NotiReel, portada">
-                <span className="a">Noti</span><span className="b">Reel</span>
+              <a href="/" className="masthead" aria-label="NotiViral, portada">
+                <span className="a">Noti</span><span className="b">Viral</span>
               </a>
               <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                 <span className="lema">Las fuentes, a la vista</span>
@@ -68,7 +68,7 @@ export default function RootLayout({ children }) {
         <footer className="pie">
           <div className="contenedor" style={{ display: 'flex', flexWrap: 'wrap', gap: '22px 40px', justifyContent: 'space-between', width: '100%' }}>
             <p>
-              <strong>NotiReel</strong> reescribe cada hecho cruzando varias coberturas y cita a cada
+              <strong>NotiViral</strong> reescribe cada hecho cruzando varias coberturas y cita a cada
               medio con su enlace. Cuando las cifras no coinciden, lo decimos en la nota.
             </p>
             <nav aria-label="Enlaces del pie">

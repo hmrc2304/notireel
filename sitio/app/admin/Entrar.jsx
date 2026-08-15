@@ -11,7 +11,7 @@ export default function Entrar() {
     <div className="puerta">
       <form action={accion}>
         <h1>Baúl de noticias</h1>
-        <p>Panel privado de NotiReel.</p>
+        <p>Panel privado de NotiViral.</p>
         <input
           type="password"
           name="clave"

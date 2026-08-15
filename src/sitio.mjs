@@ -1,5 +1,5 @@
 /**
- * Publica en NotiReel: toma las notas que redactó el recolector y las escribe
+ * Publica en NotiViral: toma las notas que redactó el recolector y las escribe
  * en la base del sitio.
  *
  * Es el cable que faltaba. Con esto el circuito queda cerrado sin depender de

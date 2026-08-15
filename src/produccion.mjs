@@ -1,5 +1,5 @@
 /**
- * Producción de NotiReel, de punta a punta. Es lo que corre el cron.
+ * Producción de NotiViral, de punta a punta. Es lo que corre el cron.
  *
  *   recolectar → agrupar → rankear → redactar → publicar la nota
  *                                             → video (solo las mejores)

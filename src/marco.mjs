@@ -16,7 +16,7 @@ import { pathToFileURL } from 'node:url';
 import { DIRS , esPrincipal } from './config.mjs';
 
 /**
- * Paleta de NotiReel. El teal marca lo verificado y el ladrillo lo que todavía
+ * Paleta de NotiViral. El teal marca lo verificado y el ladrillo lo que todavía
  * se mueve, igual que en el sitio: quien ve el Reel y después entra a la web
  * tiene que reconocer el mismo código.
  */
@@ -107,7 +107,7 @@ function html(avatarDataUri) {
 <div class="piso"></div>
 
 <div class="barra">
-  <div class="logo"><span class="a">Noti</span><span class="b">Reel</span></div>
+  <div class="logo"><span class="a">Noti</span><span class="b">Viral</span></div>
   <div class="lema">Las fuentes, a la vista</div>
 </div>
 

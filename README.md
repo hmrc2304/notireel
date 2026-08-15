@@ -58,7 +58,7 @@ De la misma nota salen además un **carrusel 1:1** y una **placa 4:5**, con
   redactar              nota propia que atribuye cada dato y marca en qué difieren
 ```
 
-## El sitio: NotiReel
+## El sitio: NotiViral
 
 **https://notiviral.gemasdigitales.com** — código en `sitio/`, Next.js sobre Vercel,
 datos en el Supabase `notireel`.

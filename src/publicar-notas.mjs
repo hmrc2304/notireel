@@ -1,5 +1,5 @@
 /**
- * Ciclo completo de NotiReel: recolectar, agrupar, redactar y publicar en el sitio.
+ * Ciclo completo de NotiViral: recolectar, agrupar, redactar y publicar en el sitio.
  *
  *   node src/publicar-notas.mjs 5        produce y publica 5 notas
  *   node src/publicar-notas.mjs 5 --desde-archivo   usa las notas ya redactadas hoy
@@ -72,5 +72,5 @@ export async function correr({ cantidad = 5, desdeArchivo = false } = {}) {
 if (esPrincipal(import.meta.url)) {
   const cantidad = Number(process.argv.find((a) => /^\d+$/.test(a)) ?? 5);
   const hechas = await correr({ cantidad, desdeArchivo: flag('desde-archivo') });
-  console.log(`\n${hechas.length} notas publicadas en NotiReel.`);
+  console.log(`\n${hechas.length} notas publicadas en NotiViral.`);
 }

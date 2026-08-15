@@ -50,22 +50,27 @@ export default async function Seccion({ params }) {
             return (
               <article className="tarjeta" key={n.slug}>
                 <a href={`/nota/${n.slug}`}>
+                  <div className="meta-linea sobre">
+                    <span className={`sello s-${n.certeza}`} title={e.detalle}>{e.texto}</span>
+                    {n.medios_count > 1 && (
+                      <span className="cuantos-medios"><b>{n.medios_count}</b> fuentes</span>
+                    )}
+                  </div>
+                  <h3>{n.titular}</h3>
                   {n.imagen_url && (
                     <div className="marco">
                       <img src={n.imagen_url} alt="" loading="lazy" />
                       {n.video_url && (
-                        <span className="insignia-video">
+                        <span className="reproducir" aria-hidden="true">
+                          <svg viewBox="0 0 24 24" width="15" height="15">
+                            <path d="M8 5v14l11-7z" fill="currentColor" />
+                          </svg>
                           {n.video_origen === 'oficial' ? 'Video oficial' : 'Video'}
                         </span>
                       )}
                     </div>
                   )}
                 </a>
-                <div className="meta-linea" style={{ marginTop: 0 }}>
-                  <span className={`sello s-${n.certeza}`} title={e.detalle}>{e.texto}</span>
-                  {n.medios_count > 1 && <span className="cuantos-medios">{n.medios_count} fuentes</span>}
-                </div>
-                <a href={`/nota/${n.slug}`}><h3>{n.titular}</h3></a>
                 <p>{n.bajada}</p>
                 <span className="fecha">{haceCuanto(n.publicada_en)}</span>
               </article>
