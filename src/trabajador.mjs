@@ -11,6 +11,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 import { env, DIRS, esPrincipal, salirPorError, esSinSaldo } from './config.mjs';
 import { publicarNota, notaDelHecho, subirImagen, subirVideo, marcarVideo } from './sitio.mjs';
 
@@ -64,6 +65,19 @@ const cerrar = (id, campos) =>
     headers: { Prefer: 'return=minimal' },
     body: JSON.stringify({ ...campos, terminado_en: new Date().toISOString() }),
   });
+
+/** Segundos reales del archivo, o null si ffprobe no está o falla. */
+function duracionDe(mp4) {
+  try {
+    const salida = execFileSync('ffprobe', [
+      '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', mp4,
+    ], { encoding: 'utf8' });
+    const n = Number(String(salida).trim());
+    return Number.isFinite(n) ? n : null;
+  } catch {
+    return null;
+  }
+}
 
 /** Reconstruye el grupo que el baúl guardó, en la forma que espera el redactor. */
 function grupoDesdeBaul(fila) {
@@ -144,7 +158,10 @@ export async function procesar(trabajo) {
     await marcarVideo(publicada.slug, {
       videoUrl: resultado.video_url, horizontalUrl, duracion: locucion.duracion,
     });
-    console.log(`  video de ${(locucion.duracion + 9).toFixed(0)}s${horizontalUrl ? ' (vertical y 16:9)' : ''}`);
+    // Se mide el archivo en vez de sumar los 9 s de la intro: los presentadores
+    // sin intro generada arrancan directo y el número quedaba inflado.
+    const segundos = duracionDe(piezas.vertical) ?? locucion.duracion;
+    console.log(`  video de ${segundos.toFixed(0)}s${horizontalUrl ? ' (vertical y 16:9)' : ''}`);
   } else {
     const { armarCarrusel, armarPlaca } = await import('./tarjetas.mjs');
     const id = publicada.slug.slice(0, 24);
