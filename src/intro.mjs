@@ -119,7 +119,27 @@ export async function generarIntro(avatarNombre = 'ana', numero = 1) {
 
 if (esPrincipal(import.meta.url)) {
   const nombre = process.argv[2] ?? 'ana';
-  console.log(`Generando la intro de ${nombre} con Veo 3...`);
-  const salida = await generarIntro(nombre);
-  console.log(`\nListo: ${salida} (${(fs.statSync(salida).size / 1024 / 1024).toFixed(1)} MB)`);
+  const uno = process.argv[3] ? Number(process.argv[3]) : null;
+  const pedidas = uno ? [uno] : FRASES.map((_, i) => i + 1);
+
+  for (const n of pedidas) {
+    const sufijo = n === 1 ? '' : `-${n}`;
+    const destino = path.join(DIRS.assets, `intro-${nombre}${sufijo}.mp4`);
+
+    // Sin número explícito se completan las que falten: cada generación cuesta
+    // 60 créditos y rehacer las que ya están es tirar plata.
+    if (!uno && fs.existsSync(destino)) {
+      console.log(`${n}. ya existe ${path.basename(destino)}`);
+      continue;
+    }
+
+    console.log(`${n}. "${FRASES[(n - 1) % FRASES.length]}"`);
+    try {
+      const salida = await generarIntro(nombre, n);
+      console.log(`\n   ${path.basename(salida)} · ${(fs.statSync(salida).size / 1024 / 1024).toFixed(1)} MB`);
+    } catch (e) {
+      console.error(`\n   ! ${e.message}`);
+      if (/402|cr[eé]dito/i.test(e.message)) break;
+    }
+  }
 }
