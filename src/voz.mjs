@@ -11,10 +11,18 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { env, DIRS , esPrincipal } from './config.mjs';
 
 const API = 'https://api.elevenlabs.io/v1';
+
+/**
+ * Ritmo de lectura. A velocidad natural la locución arrastra para un reel: el
+ * formato corto se escucha rápido y treinta segundos de lectura pausada se
+ * abandonan antes de la mitad.
+ */
+const VELOCIDAD = Number(env('VOZ_VELOCIDAD', false) ?? 1.25);
 
 /** Voces validadas en la cuenta. La default es neutra a propósito: el alcance es mundial. */
 export const VOCES = {
@@ -27,9 +35,38 @@ export const VOCES = {
 };
 
 /**
- * Locuta el libreto. Devuelve { mp3, palabras: [{ palabra, desde, hasta }], duracion }.
+ * Acelera el mp3 sin cambiar el tono y escala los tiempos de cada palabra.
+ *
+ * Se hace después de generar y no pidiéndole a ElevenLabs que hable rápido: el
+ * `speed` de la API deforma la dicción, mientras que atempo solo comprime el
+ * tiempo. Escalar los timestamps es obligatorio, si no los subtítulos siguen
+ * marcando el ritmo del audio viejo y se desfasan cada vez más.
  */
-export async function locutar(texto, destino, { voz = 'langa', modelo = 'eleven_flash_v2_5' } = {}) {
+function acelerar(mp3, palabras, factor) {
+  if (!factor || Math.abs(factor - 1) < 0.01) return { mp3, palabras };
+
+  const rapido = mp3.replace(/\.mp3$/, `-x${String(factor).replace('.', '')}.mp3`);
+  try {
+    execFileSync('ffmpeg', [
+      '-y', '-hide_banner', '-loglevel', 'error',
+      '-i', mp3, '-filter:a', `atempo=${factor}`, '-b:a', '192k', rapido,
+    ]);
+  } catch (e) {
+    console.error(`  ! no pude acelerar la voz (${e.message}), queda a velocidad normal`);
+    return { mp3, palabras };
+  }
+
+  return {
+    mp3: rapido,
+    palabras: palabras.map((p) => ({ ...p, desde: p.desde / factor, hasta: p.hasta / factor })),
+  };
+}
+
+/**
+ * Locuta el libreto. Devuelve { mp3, palabras: [{ palabra, desde, hasta }], duracion }.
+ * `velocidad` acelera el resultado; 1.25 es el ritmo de lectura de un noticiero.
+ */
+export async function locutar(texto, destino, { voz = 'langa', modelo = 'eleven_flash_v2_5', velocidad = VELOCIDAD } = {}) {
   const voiceId = VOCES[voz] ?? voz;
 
   const res = await fetch(`${API}/text-to-speech/${voiceId}/with-timestamps?output_format=mp3_44100_128`, {
@@ -49,10 +86,11 @@ export async function locutar(texto, destino, { voz = 'langa', modelo = 'eleven_
   fs.mkdirSync(path.dirname(destino), { recursive: true });
   fs.writeFileSync(destino, Buffer.from(data.audio_base64, 'base64'));
 
-  const palabras = agruparEnPalabras(data.alignment ?? data.normalized_alignment);
+  const crudas = agruparEnPalabras(data.alignment ?? data.normalized_alignment);
+  const { mp3, palabras } = acelerar(destino, crudas, velocidad);
   const duracion = palabras.length ? palabras[palabras.length - 1].hasta : 0;
 
-  return { mp3: destino, palabras, duracion };
+  return { mp3, palabras, duracion };
 }
 
 /** El alignment viene por carácter; lo agrupamos en palabras para los subtítulos. */

@@ -119,11 +119,21 @@ export async function procesar(trabajo) {
     const { locutar } = await import('./voz.mjs');
     const { armarVideo } = await import('./video.mjs');
 
+    const { fotosDeCoberturas } = await import('./imagen.mjs');
+
     const guion = await escribirGuion({ ...nota, titulo: nota.titular });
     const locucion = await locutar(guion.libreto, `${base}.mp3`);
+
+    // Las imágenes que mandaron los otros medios del mismo hecho: con ellas el
+    // video va cambiando de foto mientras la voz lee.
+    const extras = await fotosDeCoberturas(fila.coberturas, base, bajarImagen, {
+      evitar: [fila.imagen_origen],
+    });
+    if (extras.length) console.log(`  ${extras.length} fotos más de otras coberturas`);
+
     const mp4 = await armarVideo({
       nota: { ...nota, id: publicada.slug, slug: publicada.slug },
-      guion, locucion, avatar: trabajo.avatar ?? 'ana', fondo, fondoGenerado: generada,
+      guion, locucion, avatar: trabajo.avatar ?? 'ana', fondo, fondoGenerado: generada, extras,
     });
 
     resultado.video_url = await subirVideo(mp4, publicada.slug);

@@ -59,10 +59,20 @@ async function producirVideo(nota, publicada, fondo, avatar, voz, fondoGenerado)
     return null;
   }
 
+  const { fotosDeCoberturas } = await import('./imagen.mjs');
+  const { bajarImagen } = await import('./video.mjs');
+
   const guion = await escribirGuion({ ...nota, titulo: nota.titular });
   console.log(`    guion: "${guion.hook}" (${guion.palabras} palabras)`);
 
-  const locucion = await locutar(guion.libreto, path.join(DIRS.temp, `${publicada.slug.slice(0, 8)}.mp3`), { voz });
+  const base = path.join(DIRS.temp, publicada.slug.slice(0, 8));
+  const locucion = await locutar(guion.libreto, `${base}.mp3`, { voz });
+
+  // Las fotos que mandaron los otros medios del mismo hecho: el video va
+  // cambiando de imagen mientras la voz lee, en vez de quedarse en una sola.
+  const extras = await fotosDeCoberturas(nota.fuentes, base, bajarImagen, { evitar: [nota.imagen] });
+  if (extras.length) console.log(`    ${extras.length} fotos más de otras coberturas`);
+
   const mp4 = await armarVideo({
     nota: { ...nota, id: publicada.slug, slug: publicada.slug },
     guion,
@@ -70,6 +80,7 @@ async function producirVideo(nota, publicada, fondo, avatar, voz, fondoGenerado)
     avatar,
     fondo,
     fondoGenerado,
+    extras,
   });
 
   const url = await subirVideo(mp4, publicada.slug);

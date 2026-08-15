@@ -225,7 +225,12 @@ export async function redactarNota(grupoCrudo) {
     imagen: grupo.imagen,
     fecha: grupo.fecha,
     puntaje: grupo.puntaje ?? null,
-    fuentes: grupo.noticias.map((x) => ({ medio: x.medio, titulo: x.titulo, url: x.url, fecha: x.fecha })),
+    // `imagen` viaja con cada cobertura para que el video pueda ir cambiando de
+    // foto. No se guarda en la tabla `fuentes`: el insert mapea sus columnas una
+    // por una, así que este campo de más no la rompe.
+    fuentes: grupo.noticias.map((x) => ({
+      medio: x.medio, titulo: x.titulo, url: x.url, fecha: x.fecha, imagen: x.imagen ?? null,
+    })),
   };
 }
 

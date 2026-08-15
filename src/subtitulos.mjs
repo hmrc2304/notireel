@@ -15,6 +15,15 @@ const MAX_CHARS = 20;
 const MAX_PALABRAS = 4;
 const MAX_SEG = 2.4;
 
+/**
+ * La franja de texto, entre el pie de la foto y la barra del sitio.
+ *
+ * El titular arranca en HOOK_Y y baja; el subtítulo termina en SUB_Y y sube. Así
+ * el aire que queda en el medio no lo puede comer ninguno de los dos.
+ */
+const HOOK_Y = 1268;
+const SUB_Y = 1700;
+
 /** &HAABBGGRR: alfa invertido y canales al revés que en CSS. */
 function color(hex, alfa = 0) {
   const h = hex.replace('#', '');
@@ -173,8 +182,13 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
   }
 
   // El hook queda fijo: es el titular que se lee sin sonido.
+  //
+  // Anclado por ARRIBA (\an8), mientras el subtítulo se ancla por abajo. Con los
+  // dos centrados, un titular de dos líneas terminaba a 60 px del subtítulo y
+  // cualquier bloque que creciera se le metía encima. Anclados en direcciones
+  // opuestas crecen hacia afuera y el aire del medio nunca se pierde.
   filas.push(
-    `Dialogue: 2,0:00:00.00,${fin},Hook,,0,0,0,,{\\pos(540,1400)\\an5\\fad(220,0)}${partirHook(hook)}`,
+    `Dialogue: 2,0:00:00.00,${fin},Hook,,0,0,0,,{\\pos(540,${HOOK_Y})\\an8\\fad(220,0)}${partirHook(hook)}`,
   );
 
   // Cuando el fondo no es una foto del hecho sino una imagen generada, se dice.
@@ -192,7 +206,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     const escala = exceso > 1 ? Math.max(62, Math.round(100 / exceso)) : 100;
     filas.push(
       `Dialogue: 3,${t(b.desde)},${t(b.hasta)},Sub,,0,0,0,,` +
-      `{\\pos(540,1620)\\an5\\fscx${Math.round(escala * 0.93)}\\fscy93` +
+      `{\\pos(540,${SUB_Y})\\an2\\fscx${Math.round(escala * 0.93)}\\fscy93` +
       `\\t(0,110,\\fscx${escala}\\fscy100)}${escapar(b.texto)}`,
     );
   }

@@ -165,6 +165,45 @@ function recortarMitad(origen, recorte, destino) {
 }
 
 /**
+ * Baja las imágenes de las otras coberturas del mismo hecho.
+ *
+ * Son el material para que el video no se quede treinta segundos sobre una única
+ * foto congelada. No pasan por el control de visión: es una llamada por imagen y
+ * el gasto no se justifica para algo que aparece seis segundos. Se filtran con lo
+ * barato, que descarta casi todo lo malo: las repetidas, las que no se pueden
+ * bajar y las miniaturas que ampliadas se ven pixeladas.
+ */
+export async function fotosDeCoberturas(coberturas, rutaBase, descargar, { tope = 4, evitar = [] } = {}) {
+  const vistas = new Set(evitar.map((u) => String(u).split('?')[0]));
+  const salida = [];
+
+  for (const c of coberturas ?? []) {
+    if (salida.length >= tope) break;
+    const url = c?.imagen;
+    if (!url) continue;
+
+    const limpia = String(url).split('?')[0];
+    if (vistas.has(limpia)) continue;
+    vistas.add(limpia);
+
+    const destino = `${rutaBase}-cob${salida.length}.jpg`;
+    try {
+      await descargar(url, destino);
+    } catch {
+      continue;
+    }
+
+    const tam = medir(destino);
+    if (!tam || tam.ancho < ANCHO_MINIMO) continue;
+
+    const recortada = recortarMitad(destino, 'completa', destino);
+    salida.push(recortada ?? destino);
+  }
+
+  return salida;
+}
+
+/**
  * Devuelve la ruta de una imagen de fondo utilizable, generando una si hace falta.
  * `descargar` es la función que baja la imagen original de la nota.
  */
