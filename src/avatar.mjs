@@ -1,5 +1,5 @@
 /**
- * Genera el presentador de Noti Viral. Se corre UNA vez: el PNG queda en assets/
+ * Genera el presentador de Notiviral. Se corre UNA vez: el PNG queda en assets/
  * y todos los videos lo reusan. Costo por video: cero.
  *
  * Fotorrealista de verdad, nada de aspecto CGI o render. Encuadre de busto,

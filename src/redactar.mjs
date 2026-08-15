@@ -68,7 +68,7 @@ const HERRAMIENTA = {
   },
 };
 
-const SISTEMA = `Redactás para Noti Viral, un medio digital en español que cubre noticias del mundo.
+const SISTEMA = `Redactás para Notiviral, un medio digital en español que cubre noticias del mundo.
 Tu material son las coberturas que varios medios publicaron sobre un mismo hecho.
 
 REGLAS DURAS:
@@ -104,7 +104,7 @@ TEXTO: ${n.resumen || '(el feed no trae resumen)'}`)
 ${coberturas}
 
 ---
-Redactá la nota de Noti Viral sobre este hecho.`;
+Redactá la nota de Notiviral sobre este hecho.`;
 }
 
 const DEPURAR = {

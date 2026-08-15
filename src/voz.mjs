@@ -133,7 +133,7 @@ if (esPrincipal(import.meta.url)) {
   const c = await creditos();
   console.log(`Créditos: ${c.usados}/${c.limite} (quedan ${c.restantes})`);
 
-  const texto = process.argv[2] ?? 'Prueba de locución para Noti Viral. 5 petardos, 281 fallecidos, 800 mil barriles.';
+  const texto = process.argv[2] ?? 'Prueba de locución para Notiviral. 5 petardos, 281 fallecidos, 800 mil barriles.';
   const salida = path.join(DIRS.temp, 'prueba-voz.mp3');
   const r = await locutar(texto, salida);
   console.log(`Audio: ${r.mp3}`);

@@ -34,8 +34,11 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq ffmpeg
 
-      - name: Regenerar el marco
-        run: node src/marco.mjs ana
+      - name: Regenerar los marcos
+        # Los tres presentadores: el panel deja elegir cualquiera y el marco no
+        # está versionado, así que si falta el del elegido el video sale sin él.
+        run: |
+          for a in ana mateo sofia; do node src/marco.mjs $a; done
 
       - name: Despachar la cola
         env:

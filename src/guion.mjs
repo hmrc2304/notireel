@@ -10,7 +10,7 @@ import { env , esPrincipal } from './config.mjs';
 
 const MODELO = 'claude-sonnet-5';
 
-const SISTEMA = `Redactás guiones de video para Noti Viral, un medio de noticias que publica
+const SISTEMA = `Redactás guiones de video para Notiviral, un medio de noticias que publica
 en formato vertical. Los libretos se leen en voz alta en 30 a 40 segundos.
 Es trabajo periodístico: cubrís lo que la nota reporta, incluidos hechos duros o polémicos,
 con el tono sobrio de un noticiero.
@@ -50,7 +50,7 @@ const HERRAMIENTA = {
 };
 
 function prompt(nota) {
-  return `Escribí el guion de video para esta nota periodística ya publicada en Noti Viral.
+  return `Escribí el guion de video para esta nota periodística ya publicada en Notiviral.
 
 TITULAR: ${nota.titular}
 SECCIÓN: ${nota.seccion}
