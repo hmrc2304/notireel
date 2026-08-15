@@ -11,7 +11,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { env, DIRS, esPrincipal } from './config.mjs';
+import { env, DIRS, esPrincipal, salirPorError, esSinSaldo } from './config.mjs';
 import { publicarNota, notaDelHecho, subirImagen, subirVideo, marcarVideo } from './sitio.mjs';
 
 const SITIO = () => env('NOTIREEL_SITIO', false) ?? 'https://notiviral.gemasdigitales.com';
@@ -172,6 +172,19 @@ export async function correr({ soloUno = false } = {}) {
       await cerrar(trabajo.id, { estado: 'listo', ...resultado });
       hechos++;
     } catch (e) {
+      // Sin saldo no es culpa del pedido: vuelve a la cola con el intento
+      // devuelto. Si contara, tres corridas seguidas sin crédito lo darían por
+      // fallado para siempre y habría que reencolarlo a mano.
+      if (esSinSaldo(e)) {
+        console.error('  ! sin saldo en la API: el pedido queda en la cola');
+        await pedir(`trabajos?id=eq.${trabajo.id}`, {
+          method: 'PATCH',
+          headers: { Prefer: 'return=minimal' },
+          body: JSON.stringify({ estado: 'pendiente', intentos: trabajo.intentos, error: 'sin saldo' }),
+        });
+        throw e;
+      }
+
       console.error(`  ! falló: ${e.message}`);
       // Con los intentos agotados queda fallado; si no, vuelve a la cola.
       const agotado = trabajo.intentos >= MAX_INTENTOS;
@@ -189,6 +202,10 @@ export async function correr({ soloUno = false } = {}) {
 }
 
 if (esPrincipal(import.meta.url)) {
-  const hechos = await correr({ soloUno: process.argv.includes('--uno') });
-  console.log(hechos ? `\n${hechos} pedido(s) procesado(s).` : 'No había nada pendiente.');
+  try {
+    const hechos = await correr({ soloUno: process.argv.includes('--uno') });
+    console.log(hechos ? `\n${hechos} pedido(s) procesado(s).` : 'No había nada pendiente.');
+  } catch (e) {
+    process.exit(salirPorError(e, 'el despacho de la cola'));
+  }
 }

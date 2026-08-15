@@ -56,6 +56,37 @@ export function env(clave, obligatoria = true) {
   return v;
 }
 
+/**
+ * ¿El error es que se acabó el saldo de un proveedor?
+ *
+ * No es un defecto del motor y no se arregla reintentando: hay que ir a cargar
+ * crédito. Distinguirlo permite que la corrida termine con un aviso claro en vez
+ * de un stacktrace, y sobre todo que no marque el workflow como fallado: el cron
+ * dispara cada hora y mandaba un mail de error por corrida.
+ */
+export function esSinSaldo(e) {
+  const m = String(e?.message ?? e).toLowerCase();
+  return m.includes('credit balance is too low')     // Anthropic
+    || m.includes('insufficient credits')            // Kie
+    || m.includes('quota exceeded')
+    || /\b402\b/.test(m);                            // Kie devuelve 402 sin crédito
+}
+
+/**
+ * Termina la corrida distinguiendo "se acabó el saldo" de un error de verdad.
+ * Devuelve el código de salida para que quien llama decida cuándo usarlo.
+ */
+export function salirPorError(e, queHacia = 'la corrida') {
+  if (esSinSaldo(e)) {
+    console.error(`\n⚠ Sin saldo en la API: ${queHacia} no se hizo.`);
+    console.error('  No es un problema del código. Hay que cargar crédito para que siga.');
+    return 0;
+  }
+  console.error(`\n✖ Falló ${queHacia}: ${e?.message ?? e}`);
+  if (e?.stack) console.error(e.stack.split('\n').slice(1, 4).join('\n'));
+  return 1;
+}
+
 export const DIRS = {
   raiz: RAIZ,
   assets: path.join(RAIZ, 'assets'),

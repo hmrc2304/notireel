@@ -358,7 +358,18 @@ export async function agrupar(items, { umbral = 0.26, revisar = 60, usarIA = tru
 
   if (!usarIA || grupos.length < 2) return grupos;
 
-  const fusiones = await fusionarConClaude(grupos, Math.min(revisar, grupos.length));
+  // La segunda pasada mejora los grupos, no los hace posibles: si la API está
+  // caída o sin saldo, se sigue con lo que dio el texto. Antes una caída acá
+  // frenaba el motor entero, que es mucho peor que perder las fusiones entre
+  // idiomas de una corrida.
+  let fusiones;
+  try {
+    fusiones = await fusionarConClaude(grupos, Math.min(revisar, grupos.length));
+  } catch (e) {
+    console.error(`  ! sin la fusión entre idiomas (${e.message.slice(0, 90)})`);
+    return grupos;
+  }
+
   const usados = new Set();
   const salida = [];
 

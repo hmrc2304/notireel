@@ -13,7 +13,7 @@
  *   node src/baul.mjs --ver        muestra lo que hay guardado hoy
  */
 
-import { env, esPrincipal } from './config.mjs';
+import { env, esPrincipal, salirPorError } from './config.mjs';
 
 const URL_BASE = () => env('SUPABASE_NOTIREEL_URL');
 const CLAVE = () => env('SUPABASE_NOTIREEL_SERVICE_KEY');
@@ -283,12 +283,14 @@ if (esPrincipal(import.meta.url)) {
     for (const f of filas) {
       console.log(`  ${String(f.medios_count).padStart(2)} medios · ${f.nivel_mejor} · ${f.estado.padEnd(10)} ${f.titular.slice(0, 58)}`);
     }
-  } else {
+  } else try {
     console.log(`Llenando el baúl con las ${tope} mejores del día...\n`);
     const r = await llenar({ tope });
     console.log(
       `${r.totalItems} noticias · ${r.totalGrupos} hechos · ` +
       `${r.nuevas} nuevas y ${r.actualizadas} actualizadas en el baúl`,
     );
+  } catch (e) {
+    process.exit(salirPorError(e, 'el llenado del baúl'));
   }
 }

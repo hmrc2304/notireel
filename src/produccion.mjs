@@ -16,7 +16,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { DIRS, env, esPrincipal } from './config.mjs';
+import { DIRS, env, esPrincipal, salirPorError } from './config.mjs';
 import { publicarNota, subirImagen, subirVideo, marcarVideo, claveDelHecho, yaPublicado } from './sitio.mjs';
 
 /** A 24 piezas por día, 8 llevan video: una de cada tres. */
@@ -140,15 +140,19 @@ export async function correr({ lote = 1, avatar = 'ana', voz = 'langa', soloNota
 }
 
 if (esPrincipal(import.meta.url)) {
-  const lote = Number(arg('lote', '1'));
-  const hechas = await correr({
-    lote,
-    avatar: arg('avatar', 'ana'),
-    voz: arg('voz', 'langa'),
-    soloNota: flag('solo-nota'),
-  });
+  try {
+    const lote = Number(arg('lote', '1'));
+    const hechas = await correr({
+      lote,
+      avatar: arg('avatar', 'ana'),
+      voz: arg('voz', 'langa'),
+      soloNota: flag('solo-nota'),
+    });
 
-  const videos = hechas.filter((h) => h.conVideo).length;
-  console.log(`\n${hechas.length} piezas: ${videos} con video, ${hechas.length - videos} estáticas`);
-  for (const h of hechas) console.log(`  ${h.conVideo ? '▶' : '▪'} ${h.url}`);
+    const videos = hechas.filter((h) => h.conVideo).length;
+    console.log(`\n${hechas.length} piezas: ${videos} con video, ${hechas.length - videos} estáticas`);
+    for (const h of hechas) console.log(`  ${h.conVideo ? '▶' : '▪'} ${h.url}`);
+  } catch (e) {
+    process.exit(salirPorError(e, 'la producción de la pieza'));
+  }
 }

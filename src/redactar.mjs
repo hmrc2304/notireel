@@ -13,7 +13,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { env, DIRS, esPrincipal } from './config.mjs';
+import { env, DIRS, esPrincipal, esSinSaldo } from './config.mjs';
 
 const MODELO = 'claude-sonnet-5';
 
@@ -243,6 +243,9 @@ export async function producir({ cantidad = 3, horas = 24, minMedios = 1 } = {})
     try {
       notas.push(await redactarNota(g));
     } catch (e) {
+      // Sin saldo van a fallar todas igual, y el error repetido una vez por nota
+      // sepulta el motivo. Se corta y se avisa una sola vez, arriba.
+      if (esSinSaldo(e)) throw e;
       console.error(`  ! ${g.titular.slice(0, 50)}: ${e.message}`);
     }
   }
