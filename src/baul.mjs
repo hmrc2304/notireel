@@ -30,10 +30,41 @@ async function pedir(ruta, opciones = {}) {
   return t ? JSON.parse(t) : null;
 }
 
-/** Misma huella que usa el anti-duplicados: la primera cobertura del hecho. */
+const limpiarUrl = (n) => String(n?.url ?? '').split('?')[0].slice(0, 400) || null;
+
+/** Solo sirve para el unique de la tabla; quién identifica el hecho es baul_urls. */
 function claveDelGrupo(grupo) {
-  const urls = grupo.noticias.map((n) => String(n.url).split('?')[0]).sort();
+  const urls = grupo.noticias.map(limpiarUrl).filter(Boolean).sort();
   return (urls[0] ?? grupo.titular).slice(0, 400);
+}
+
+/**
+ * Qué URLs de estas ya están guardadas, y en qué fila del baúl.
+ *
+ * Va de a tandas chicas: las URLs viajan en la query string y con 100 por vuelta
+ * la línea de request pasaba el límite de encabezados de undici, que corta con un
+ * `HeadersOverflowError` bastante opaco.
+ */
+async function buscarPorUrls(urls) {
+  const mapa = new Map();
+  const unicas = [...new Set(urls)].filter(Boolean);
+
+  for (let i = 0; i < unicas.length; i += 20) {
+    const lista = unicas.slice(i, i + 20).map((u) => `"${u.replace(/"/g, '')}"`).join(',');
+    const filas = await pedir(`baul_urls?select=url,baul_id&url=in.(${encodeURIComponent(lista)})`);
+    for (const f of filas ?? []) mapa.set(f.url, f.baul_id);
+  }
+  return mapa;
+}
+
+/** Deja registrada cada cobertura del hecho, para reconocerlo en la próxima corrida. */
+function registrarUrls(baulId, urls) {
+  if (!urls.length) return null;
+  return pedir('baul_urls?on_conflict=url', {
+    method: 'POST',
+    headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+    body: JSON.stringify(urls.map((url) => ({ url, baul_id: baulId }))),
+  });
 }
 
 /**
@@ -187,21 +218,55 @@ export async function llenar({ tope = 100, horas = 24 } = {}) {
   const traducidos = await traducirTitulares(filas);
   if (traducidos) console.log(`  ${traducidos} noticias traducidas al español`);
 
-  // De a tandas: un insert de 100 filas con las coberturas adentro es pesado.
-  let guardadas = 0;
-  for (let i = 0; i < filas.length; i += 25) {
+  const urlsPorFila = elegidas.map((g) => [...new Set(g.noticias.map(limpiarUrl))].filter(Boolean));
+  const yaGuardadas = await buscarPorUrls(urlsPorFila.flat());
+
+  let nuevas = 0;
+  let actualizadas = 0;
+
+  for (let i = 0; i < filas.length; i++) {
+    const conocida = urlsPorFila[i].map((u) => yaGuardadas.get(u)).find(Boolean);
+
+    if (conocida) {
+      // Ya está en el baúl con otra composición: se refresca lo que puede haber
+      // cambiado, sin tocar `estado` ni pisar el titular si alguien ya lo usó.
+      await pedir(`baul?id=eq.${conocida}&estado=eq.guardada`, {
+        method: 'PATCH',
+        headers: { Prefer: 'return=minimal' },
+        body: JSON.stringify({
+          titular: filas[i].titular,
+          bajada: filas[i].bajada,
+          coberturas: filas[i].coberturas,
+          medios_count: filas[i].medios_count,
+          nivel_mejor: filas[i].nivel_mejor,
+          ejes: filas[i].ejes,
+          partes_enfrentadas: filas[i].partes_enfrentadas,
+          solo_monitoreo: filas[i].solo_monitoreo,
+          puntaje: filas[i].puntaje,
+        }),
+      });
+      await registrarUrls(conocida, urlsPorFila[i]);
+      actualizadas++;
+      continue;
+    }
+
     // `on_conflict=clave` es obligatorio: sin él PostgREST resuelve el upsert
     // contra la PK (id), la fila entra como nueva y el unique de `clave` la
     // rechaza con 409 en vez de actualizar la que ya estaba.
-    await pedir('baul?on_conflict=clave', {
+    const [creada] = await pedir('baul?on_conflict=clave', {
       method: 'POST',
-      headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-      body: JSON.stringify(filas.slice(i, i + 25)),
-    });
-    guardadas += Math.min(25, filas.length - i);
+      headers: { Prefer: 'resolution=merge-duplicates,return=representation' },
+      body: JSON.stringify([filas[i]]),
+    }) ?? [];
+
+    if (creada?.id) {
+      await registrarUrls(creada.id, urlsPorFila[i]);
+      urlsPorFila[i].forEach((u) => yaGuardadas.set(u, creada.id));
+      nuevas++;
+    }
   }
 
-  return { guardadas, totalItems: items.length, totalGrupos: grupos.length };
+  return { guardadas: nuevas + actualizadas, nuevas, actualizadas, totalItems: items.length, totalGrupos: grupos.length };
 }
 
 export function listarDelDia(limite = 100) {
@@ -221,6 +286,9 @@ if (esPrincipal(import.meta.url)) {
   } else {
     console.log(`Llenando el baúl con las ${tope} mejores del día...\n`);
     const r = await llenar({ tope });
-    console.log(`${r.totalItems} noticias · ${r.totalGrupos} hechos · ${r.guardadas} guardadas en el baúl`);
+    console.log(
+      `${r.totalItems} noticias · ${r.totalGrupos} hechos · ` +
+      `${r.nuevas} nuevas y ${r.actualizadas} actualizadas en el baúl`,
+    );
   }
 }
