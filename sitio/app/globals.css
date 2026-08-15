@@ -379,6 +379,37 @@ img { max-width: 100%; display: block; }
 }
 .boton-sonido:hover { background: rgba(0,0,0,.82); }
 
+/**
+ * Flechas de escritorio.
+ *
+ * En el celular no van: el gesto de deslizar ya lo enseñaron TikTok e Instagram,
+ * y unos botones fijos ahí compiten con el botón de leer la nota. Con mouse, en
+ * cambio, nada indica que abajo hay otra nota.
+ */
+.flechas {
+  position: fixed; right: 26px; top: 50%; transform: translateY(-50%); z-index: 60;
+  display: none; flex-direction: column; align-items: center; gap: 10px;
+}
+.flechas button {
+  display: grid; place-items: center;
+  width: 46px; height: 46px; border-radius: 50%;
+  background: rgba(0,0,0,.55); color: #fff; border: 1px solid rgba(255,255,255,.28);
+  cursor: pointer; backdrop-filter: blur(8px);
+  transition: background .15s, transform .15s;
+}
+.flechas button:hover:not(:disabled) { background: rgba(0,0,0,.85); transform: scale(1.06); }
+.flechas button:disabled { opacity: .3; cursor: default; }
+.flechas-cuenta {
+  font-family: var(--mono); font-size: 11.5px; font-weight: 700;
+  color: rgba(255,255,255,.7); text-shadow: 0 1px 6px rgba(0,0,0,.9);
+}
+
+/* Puntero fino y preciso: hay mouse. En una pantalla táctil grande sigue sin haber. */
+@media (min-width: 900px) and (pointer: fine) {
+  .flechas { display: flex; }
+  .reel-pista { display: none; }
+}
+
 /* Por encima del bloque de texto, no encima: a 190px se montaba sobre el titular. */
 .reel-pista {
   position: absolute; left: 0; right: 0; top: 96px;

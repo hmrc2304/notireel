@@ -13,11 +13,31 @@ import { useEffect, useRef, useState } from 'react';
  *
  * Arranca en silencio porque ningún navegador deja reproducir con audio sin que el
  * usuario toque antes; el botón de sonido es el primer gesto.
+ *
+ * En el celular el gesto de deslizar ya está aprendido y alcanza con una pista en
+ * la primera tarjeta. Con mouse no: nada indica que abajo hay otra nota, así que
+ * en pantallas grandes van flechas, que además dan navegación por teclado.
  */
 export default function Feed({ notas }) {
   const [sonido, setSonido] = useState(false);
   const [activo, setActivo] = useState(0);
   const refs = useRef([]);
+
+  const irA = (i) => {
+    const destino = refs.current[i];
+    if (destino) destino.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  // Las flechas del teclado son gratis: el contenedor tiene el scroll, no el
+  // documento, así que sin esto no responden aunque el feed esté a la vista.
+  useEffect(() => {
+    const alTeclado = (e) => {
+      if (e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); irA(Math.min(activo + 1, notas.length - 1)); }
+      if (e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); irA(Math.max(activo - 1, 0)); }
+    };
+    window.addEventListener('keydown', alTeclado);
+    return () => window.removeEventListener('keydown', alTeclado);
+  }, [activo, notas.length]);
 
   useEffect(() => {
     const observador = new IntersectionObserver(
@@ -57,6 +77,32 @@ export default function Feed({ notas }) {
       >
         {sonido ? '🔊 Sonido' : '🔇 Sin sonido'}
       </button>
+
+      <nav className="flechas" aria-label="Navegar entre notas">
+        <button
+          type="button"
+          onClick={() => irA(activo - 1)}
+          disabled={activo === 0}
+          aria-label="Nota anterior"
+        >
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+            <path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+
+        <span className="flechas-cuenta">{activo + 1}/{notas.length}</span>
+
+        <button
+          type="button"
+          onClick={() => irA(activo + 1)}
+          disabled={activo >= notas.length - 1}
+          aria-label="Nota siguiente"
+        >
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+            <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
+      </nav>
 
       {notas.map((n, i) => (
         <section
