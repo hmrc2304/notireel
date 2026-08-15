@@ -37,6 +37,117 @@ function claveDelGrupo(grupo) {
 }
 
 /**
+ * Traduce al español los titulares que no tengan ninguna cobertura en español.
+ *
+ * El panel se lee en español y la nota se redacta en español, pero un hecho que
+ * solo cubrieron medios ingleses llega con el titular en inglés y hay que
+ * traducirlo de cabeza para saber de qué se trata. Va todo en UNA llamada: cien
+ * llamadas sueltas costarían cien veces más y tardarían minutos.
+ *
+ * Si la traducción falla, se sigue con los titulares originales: que el baúl
+ * quede sin llenar por esto sería peor que leer algunos titulares en inglés.
+ */
+const HERRAMIENTA_TRADUCIR = {
+  name: 'traducir',
+  description: 'Devuelve los textos traducidos al español.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      textos: {
+        type: 'array',
+        description: 'uno por CADA número recibido, sin saltear ninguno',
+        items: {
+          type: 'object',
+          properties: {
+            n: { type: 'integer', description: 'el número que venía en la lista' },
+            titular: { type: 'string', description: 'el titular en español' },
+            bajada: { type: 'string', description: 'la bajada en español, vacía si no venía' },
+          },
+          required: ['n', 'titular'],
+        },
+      },
+    },
+    required: ['textos'],
+  },
+};
+
+const INSTRUCCION_TRADUCIR =
+  'Traducís noticias al español neutro. El titular mantiene tono de titular: sin punto ' +
+  'final, sin agregar ni sacar información, sin adjetivar. Los nombres propios, las siglas ' +
+  'y los cargos quedan como se usan en la prensa en español. Devolvés una entrada por cada ' +
+  'número que recibís, sin saltear ninguno.';
+
+/** Una tanda: pide la traducción y la aplica sobre `filas`. Devuelve cuántas entraron. */
+async function tandaDeTraduccion(filas, pendientes) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': env('ANTHROPIC_API_KEY'),
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-5',
+      max_tokens: 8000,
+      system: INSTRUCCION_TRADUCIR,
+      tools: [HERRAMIENTA_TRADUCIR],
+      tool_choice: { type: 'tool', name: 'traducir' },
+      messages: [{
+        role: 'user',
+        content: pendientes
+          .map((x) => `${x.i}. ${filas[x.i].titular}\n   bajada: ${(filas[x.i].bajada ?? '').slice(0, 300)}`)
+          .join('\n\n'),
+      }],
+    }),
+  });
+
+  if (!res.ok) throw new Error(`Anthropic ${res.status}`);
+  const data = await res.json();
+  const salida = data.content.find((b) => b.type === 'tool_use')?.input?.textos ?? [];
+
+  let hechos = 0;
+  for (const { n, titular, bajada } of salida) {
+    if (!filas[n] || !titular?.trim()) continue;
+    filas[n].titular = titular.trim();
+    if (bajada?.trim()) filas[n].bajada = bajada.trim();
+    hechos++;
+  }
+  return hechos;
+}
+
+/**
+ * Traduce al español lo que no tenga ninguna cobertura en español.
+ *
+ * El panel se lee en español y la nota se redacta en español, pero un hecho que
+ * solo cubrieron medios ingleses llega en inglés y hay que traducirlo de cabeza
+ * para saber de qué se trata. Van juntos titular y bajada: traducir solo el
+ * titular dejaba "Luigi Mangione se declara culpable" arriba de "I shot Mr
+ * Thompson in Manhattan".
+ *
+ * Todo en UNA llamada, con un reintento para los que el modelo se saltee. Si
+ * falla, se sigue con los textos originales: que el baúl quede sin llenar por
+ * esto sería peor que leer algunos titulares en inglés.
+ */
+async function traducirTitulares(filas) {
+  const { pareceEspanol } = await import('./agrupar.mjs');
+  const faltantes = () => filas
+    .map((f, i) => ({ i }))
+    .filter(({ i }) => !pareceEspanol(`${filas[i].titular} ${filas[i].bajada ?? ''}`));
+
+  let hechos = 0;
+  try {
+    for (let vuelta = 0; vuelta < 2; vuelta++) {
+      const pendientes = faltantes();
+      if (!pendientes.length) break;
+      hechos += await tandaDeTraduccion(filas, pendientes);
+    }
+  } catch (e) {
+    console.error(`  ! no pude traducir (${e.message}), queda como estaba`);
+  }
+  return hechos;
+}
+
+/**
  * Recolecta, agrupa y guarda las mejores del día.
  * Se puede correr varias veces: lo ya guardado se actualiza, no se duplica.
  */
@@ -58,7 +169,7 @@ export async function llenar({ tope = 100, horas = 24 } = {}) {
   const filas = elegidas.map((g) => ({
     clave: claveDelGrupo(g),
     titular: g.titular,
-    bajada: (g.noticias[0]?.resumen ?? '').slice(0, 400),
+    bajada: (g.bajada ?? g.noticias[0]?.resumen ?? '').slice(0, 400),
     seccion: 'Mundo',
     coberturas: g.noticias.map((n) => ({
       medio: n.medio, titulo: n.titulo, url: n.url, resumen: n.resumen,
@@ -72,6 +183,9 @@ export async function llenar({ tope = 100, horas = 24 } = {}) {
     imagen_origen: g.imagen,
     puntaje: g.puntaje,
   }));
+
+  const traducidos = await traducirTitulares(filas);
+  if (traducidos) console.log(`  ${traducidos} noticias traducidas al español`);
 
   // De a tandas: un insert de 100 filas con las coberturas adentro es pesado.
   let guardadas = 0;

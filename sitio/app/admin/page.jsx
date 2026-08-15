@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { listarBaul, diasConNoticias, listarTrabajos } from '../../lib/admin';
 import Tarjeta from './Tarjeta';
+import EnCola from './EnCola';
 import Entrar from './Entrar';
 import './panel.css';
 
@@ -14,13 +15,6 @@ function fechaCorta(dia) {
   const meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
   return `${Number(d)} ${meses[Number(m) - 1]}`;
 }
-
-const ESTADO_TRABAJO = {
-  pendiente: 'en cola',
-  tomado: 'produciendo',
-  listo: 'listo',
-  fallado: 'falló',
-};
 
 export default async function Panel({ searchParams }) {
   const galleta = await cookies();
@@ -52,13 +46,7 @@ export default async function Panel({ searchParams }) {
         <section className="cola">
           <h2>Produciendo ahora</h2>
           <ul>
-            {enCurso.map((t) => (
-              <li key={t.id}>
-                <span className={`chip ${t.estado}`}>{ESTADO_TRABAJO[t.estado]}</span>
-                <span className="cola-titulo">{t.baul?.titular?.slice(0, 70)}</span>
-                <span className="cola-modo">{t.modo === 'avatar' ? `video · ${t.avatar}` : 'carrusel y placa'}</span>
-              </li>
-            ))}
+            {enCurso.map((t) => <EnCola key={t.id} trabajo={t} />)}
           </ul>
           <p className="aclara">
             El video se produce en una máquina con ffmpeg, no acá. Tarda entre uno y tres minutos:

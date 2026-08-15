@@ -200,6 +200,22 @@ export function agruparPorTexto(entrada, { umbral = null } = {}) {
 const LATINO = /^[\p{Script=Latin}\p{N}\p{P}\p{Zs}¿¡«»""''—–]+$/u;
 
 /**
+ * Marcas de que un texto está en español.
+ *
+ * El idioma del catálogo no alcanza: los feeds internacionales publican en varios
+ * y una agencia marcada como multilingüe entrega titulares en inglés. Esto mira el
+ * texto en sí, que es lo que se va a leer en el panel.
+ */
+const ESPANOL = /(^|\s)(el|la|los|las|un|una|del|al|de|en|con|por|para|que|se|su|sus|tras|ante|sobre|entre|hasta|desde|más|año|años|día|días|gobierno|según|hoy)(\s|$)/gi;
+const INGLES = /(^|\s)(the|and|of|to|in|for|with|from|after|says|said|over|amid|as|has|have|is|are|was|were|its|his|her|their|new|police|government)(\s|$)/gi;
+
+/** Cuenta las marcas de cada idioma y se queda con la diferencia. */
+export function pareceEspanol(texto = '') {
+  const contar = (r) => (texto.match(r) ?? []).length;
+  return contar(ESPANOL) - contar(INGLES) >= 2;
+}
+
+/**
  * Bloques enfrentados, para saber si un hecho lo cuentan lados opuestos.
  *
  * Contar ejes distintos no sirve: el directorio tiene 138 ejes únicos, así que
@@ -232,16 +248,31 @@ function armarGrupo(noticias) {
   const pesoMedios = medios.reduce((s, m) => s + (noticias.find((n) => n.medio === m)?.peso ?? 1), 0);
   const masNueva = noticias.reduce((a, b) => (new Date(a.fecha) > new Date(b.fecha) ? a : b));
 
-  // El titular de referencia se elige entre los que están en alfabeto latino:
-  // con medios rusos, chinos o árabes en el catálogo, el de más peso puede venir
-  // en cirílico y queda como titular de un grupo que se va a redactar en español.
+  // El titular de referencia va en español siempre que alguna cobertura lo tenga:
+  // la nota se redacta en español y el panel se lee en español, así que un titular
+  // en inglés o en portugués obliga a traducir de cabeza para saber qué es. Si no
+  // hay ninguno, se cae al alfabeto latino, porque con medios rusos, chinos o
+  // árabes en el catálogo el de más peso puede venir en cirílico.
   const ordenadas = [...noticias].sort((a, b) => b.peso - a.peso || b.resumen.length - a.resumen.length);
-  const legible = ordenadas.find((n) => LATINO.test(n.titulo)) ?? ordenadas[0];
+  const enEspanol = ordenadas.find((n) => n.idioma === 'es' && pareceEspanol(n.titulo))
+    ?? ordenadas.find((n) => pareceEspanol(n.titulo));
+  const legible = enEspanol ?? ordenadas.find((n) => LATINO.test(n.titulo)) ?? ordenadas[0];
 
   const ejes = [...new Set(noticias.map((n) => n.eje).filter(Boolean))];
 
+  // La bajada sale de la misma cobertura que el titular, y si esa vino sin
+  // resumen, de la mejor que esté en español: mezclar el titular de un medio con
+  // la bajada de otro en otro idioma es lo que hacía leer "Muere el ciclista…"
+  // seguido de "O ciclista britânico…".
+  const conResumen = (n) => n?.resumen?.length > 40;
+  const bajada = (conResumen(legible) ? legible
+    : ordenadas.find((n) => conResumen(n) && pareceEspanol(n.resumen))
+    ?? ordenadas.find(conResumen)
+    ?? legible).resumen ?? '';
+
   return {
     titular: legible.titulo,
+    bajada,
     medios,
     cantidadMedios: medios.length,
     noticias,

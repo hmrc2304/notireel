@@ -65,24 +65,43 @@ function imagen(bloque) {
   return m?.[1] ?? null;
 }
 
-/** El título de Google News trae " - Medio" pegado al final. */
-function limpiarTitulo(t, medio) {
-  if (medio !== 'Google News') return t;
+/**
+ * Google News pega " - Medio" al final del título y repite el título como
+ * descripción.
+ *
+ * La condición mira la URL del feed, no el nombre del medio: las 25 fuentes que
+ * entran por Google News están cargadas con su nombre real ("El País", "ANSA"),
+ * así que comparar contra el literal "Google News" no limpiaba ninguna y los
+ * titulares del panel salían con " - elpais.com" colgando.
+ */
+const porGoogleNews = (url = '') => /news\.google\.com/.test(url);
+
+function limpiarTitulo(t, fuente) {
+  if (!porGoogleNews(fuente.url)) return t;
   return t.replace(/\s+-\s+[^-]{2,40}$/, '').trim();
+}
+
+/** Una descripción que solo repite el titular no aporta nada como bajada. */
+function limpiarResumen(resumen, titulo) {
+  const desnudo = (s) => s.toLowerCase().replace(/[^a-z0-9áéíóúñ]/gi, '');
+  const r = desnudo(resumen);
+  const t = desnudo(titulo);
+  if (!r || r === t || (r.startsWith(t) && r.length < t.length * 1.3)) return '';
+  return resumen;
 }
 
 function parsear(xml, fuente) {
   const bloques = [...xml.matchAll(/<item[\s>][\s\S]*?<\/item>|<entry[\s>][\s\S]*?<\/entry>/gi)].map((m) => m[0]);
 
   return bloques.map((b) => {
-    const titulo = limpiarTitulo(limpiar(etiqueta(b, 'title') ?? ''), fuente.medio);
+    const titulo = limpiarTitulo(limpiar(etiqueta(b, 'title') ?? ''), fuente);
     const crudo = etiqueta(b, 'description') ?? etiqueta(b, 'summary') ?? etiqueta(b, 'content:encoded') ?? '';
     const fechaTxt = etiqueta(b, 'pubDate') ?? etiqueta(b, 'updated') ?? etiqueta(b, 'published') ?? etiqueta(b, 'dc:date');
     const fecha = fechaTxt ? new Date(limpiar(fechaTxt)) : null;
 
     return {
       titulo,
-      resumen: limpiar(crudo).slice(0, 1200),
+      resumen: limpiarResumen(limpiar(crudo).slice(0, 1200), titulo),
       url: enlace(b),
       imagen: imagen(b),
       fecha: fecha && !isNaN(fecha) ? fecha.toISOString() : null,
@@ -102,13 +121,38 @@ function parsear(xml, fuente) {
 
 /* ─────────────────────────── descarga ─────────────────────────── */
 
+/**
+ * Lee el cuerpo con la codificación que el feed declara.
+ *
+ * `res.text()` asume UTF-8 siempre. Varios medios todavía publican en
+ * ISO-8859-1 o windows-1252, y ahí cada acento se convierte en un rombo: el
+ * titular llega como "afirm� que podr�a declarar" y así queda guardado.
+ * El charset viene en el Content-Type o en el prólogo del XML.
+ */
+async function leerConCharset(res) {
+  const crudo = Buffer.from(await res.arrayBuffer());
+
+  const delTipo = /charset=["']?([\w-]+)/i.exec(res.headers.get('content-type') ?? '')?.[1];
+  // El prólogo es ASCII puro, así que se puede leer sin saber todavía el charset.
+  const delXml = /encoding=["']([\w-]+)["']/i.exec(crudo.subarray(0, 200).toString('latin1'))?.[1];
+
+  const charset = (delTipo ?? delXml ?? 'utf-8').toLowerCase();
+  if (/^(utf-?8|us-ascii)$/.test(charset)) return crudo.toString('utf8');
+
+  try {
+    return new TextDecoder(charset).decode(crudo);
+  } catch {
+    return crudo.toString('utf8');
+  }
+}
+
 async function bajarFeed(fuente) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), TIMEOUT);
   try {
     const res = await fetch(fuente.url, { headers: { 'user-agent': UA }, signal: ctrl.signal, redirect: 'follow' });
     if (!res.ok) return { fuente, error: `HTTP ${res.status}`, items: [] };
-    return { fuente, items: parsear(await res.text(), fuente) };
+    return { fuente, items: parsear(await leerConCharset(res), fuente) };
   } catch (e) {
     return { fuente, error: e.name === 'AbortError' ? 'timeout' : e.message.slice(0, 60), items: [] };
   } finally {

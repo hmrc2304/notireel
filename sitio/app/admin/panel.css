@@ -40,6 +40,16 @@
 .chip.pendiente { background: var(--papel-2); color: var(--tinta-2); }
 .chip.tomado { background: var(--acento); color: #fff; }
 
+.cola-cancelar { display: inline-flex; margin-left: auto; }
+.btn-texto {
+  background: none; border: 0; cursor: pointer;
+  font-family: inherit; font-size: 13px; font-weight: 600;
+  color: var(--tinta-3); text-decoration: underline; text-underline-offset: 3px;
+  padding: 2px 0;
+}
+.btn-texto:hover { color: var(--alerta, #BE1526); }
+.btn-texto:disabled { opacity: .6; cursor: default; text-decoration: none; }
+
 /* ── Filtros ──────────────────────────────────────────── */
 
 .filtros { display: flex; flex-wrap: wrap; gap: 10px 28px; padding: 20px 0 8px; }

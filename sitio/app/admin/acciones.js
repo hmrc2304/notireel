@@ -10,7 +10,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
-import { encolar, descartar } from '../../lib/admin';
+import { encolar, descartar, cancelar } from '../../lib/admin';
 
 const COOKIE = 'notireel_panel';
 
@@ -53,6 +53,23 @@ export async function pedirPieza(_previo, formulario) {
     return r.yaEstaba
       ? { ok: true, mensaje: 'Ya estaba en la cola.' }
       : { ok: true, mensaje: modo === 'avatar' ? 'En cola: video con presentador.' : 'En cola: carrusel y placa.' };
+  } catch (e) {
+    return { error: e.message.slice(0, 160) };
+  }
+}
+
+export async function cancelarPedido(_previo, formulario) {
+  if (!await autorizado()) return { error: 'Sesión vencida. Volvé a entrar.' };
+
+  const trabajoId = String(formulario.get('trabajoId') ?? '');
+  if (!trabajoId) return { error: 'Falta el pedido.' };
+
+  try {
+    const salio = await cancelar(trabajoId);
+    revalidatePath('/admin');
+    return salio
+      ? { ok: true, mensaje: 'Cancelado.' }
+      : { error: 'Ya lo tomó la máquina que produce: no se puede cancelar.' };
   } catch (e) {
     return { error: e.message.slice(0, 160) };
   }

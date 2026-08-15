@@ -63,6 +63,23 @@ export async function encolar({ baulId, modo, avatar = 'ana', cuerpo = 'foto', r
   return { yaEstaba: false, id: creado.id };
 }
 
+/**
+ * Saca un pedido de la cola.
+ *
+ * Solo mientras esté `pendiente`: si el trabajador ya lo tomó está redactando y
+ * gastando voz en otra máquina, y marcarlo cancelado acá no lo detendría, solo
+ * haría creer que sí. El filtro va en la consulta, así que la carrera la resuelve
+ * Postgres y no el panel.
+ */
+export async function cancelar(trabajoId) {
+  const filas = await pedir(`trabajos?id=eq.${trabajoId}&estado=eq.pendiente`, {
+    method: 'PATCH',
+    headers: { Prefer: 'return=representation' },
+    body: JSON.stringify({ estado: 'cancelado', terminado_en: new Date().toISOString() }),
+  });
+  return filas?.length > 0;
+}
+
 export function listarTrabajos(limite = 30) {
   return pedir(`trabajos?select=*,baul(titular)&order=pedido_en.desc&limit=${limite}`);
 }
