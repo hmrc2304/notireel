@@ -16,6 +16,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { env, DIRS, esPrincipal } from './config.mjs';
 
 const BASE = 'https://api.kie.ai/api/v1';
@@ -33,6 +34,97 @@ const FRASES = [
 ];
 
 const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Recorta la cola muda de la intro.
+ *
+ * Veo entrega siempre 8 segundos, pero la frase dura seis: los últimos dos el
+ * presentador se queda mirando a cámara sin decir nada, y en un reel eso se lee
+ * como que el video se colgó.
+ *
+ * No sirve buscar silencio en el audio, porque el ruido de estudio es parejo de
+ * punta a punta, ni `freezedetect`, porque el avatar respira y parpadea. Lo que
+ * sí distingue hablar de callar es cuánto cambia la ZONA DE LA BOCA entre cuadro
+ * y cuadro: mientras habla el valor triplica al de la cola muda.
+ */
+export function recortarCola(mp4, { margen = 0.35 } = {}) {
+  // El recorte mide SOLO la boca. Con un recuadro más grande entran el pelo y el
+  // cuello, que siguen moviéndose cuando la frase ya terminó, y la cola muda se
+  // vuelve indistinguible del habla.
+  const medicion = spawnSync('ffmpeg', [
+    '-hide_banner', '-i', mp4,
+    '-vf', 'crop=300:150:300:560,tblend=all_mode=difference,signalstats,'
+         + 'metadata=print:key=lavfi.signalstats.YAVG',
+    '-f', 'null', '-',
+  ], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+
+  // spawnSync y no execFileSync: `metadata=print` escribe en stderr, y
+  // execFileSync solo devuelve stdout.
+  if (!medicion.stderr) {
+    console.error('  ! no pude medir la cola, la dejo entera');
+    return null;
+  }
+  const movimiento = leerMovimiento(medicion.stderr, 0.5);
+  if (movimiento.length < 8) return null;
+
+  const valores = movimiento.map((m) => m.valor).sort((a, b) => a - b);
+  const umbral = valores[Math.floor(valores.length / 2)] * 0.45;
+
+  const total = movimiento[movimiento.length - 1].t + 0.5;
+
+  /**
+   * Se busca la primera quietud SOSTENIDA, no el último pico de movimiento: en
+   * varios clips el presentador vuelve a moverse sobre el final, después de
+   * segundos de estar callado, y quedarse con ese último pico deja la cola muda
+   * adentro igual.
+   */
+  let corte = null;
+  for (let i = 0; i < movimiento.length; i++) {
+    if (movimiento[i].t < 3) continue;
+    if (movimiento[i].valor >= umbral) continue;
+
+    let hasta = i;
+    while (hasta + 1 < movimiento.length && movimiento[hasta + 1].valor < umbral) hasta++;
+
+    // Un bache de medio segundo es una pausa entre frases, no el final.
+    if ((hasta - i + 1) * 0.5 >= 1.2) { corte = movimiento[i].t + margen; break; }
+  }
+
+  if (corte === null || corte >= total - 0.2) return null;
+
+  const recortado = mp4.replace(/\.mp4$/, '-corta.mp4');
+  execFileSync('ffmpeg', [
+    '-y', '-hide_banner', '-loglevel', 'error',
+    '-i', mp4, '-t', corte.toFixed(2),
+    '-c:v', 'libx264', '-preset', 'medium', '-crf', '20', '-pix_fmt', 'yuv420p',
+    '-c:a', 'aac', '-b:a', '160k',
+    recortado,
+  ]);
+
+  fs.renameSync(recortado, mp4);
+  return corte;
+}
+
+/** Movimiento promedio por ventana, leído de la salida de signalstats. */
+function leerMovimiento(salida, ventana = 0.5) {
+  const porVentana = new Map();
+  let tiempo = null;
+
+  for (const linea of salida.split('\n')) {
+    const t = /pts_time:([\d.]+)/.exec(linea);
+    if (t) tiempo = Number(t[1]);
+    const y = /YAVG=([\d.]+)/.exec(linea);
+    if (y && tiempo !== null) {
+      const clave = Math.floor(tiempo / ventana) * ventana;
+      if (!porVentana.has(clave)) porVentana.set(clave, []);
+      porVentana.get(clave).push(Number(y[1]));
+    }
+  }
+
+  return [...porVentana.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([t, vs]) => ({ t, valor: vs.reduce((x, y) => x + y, 0) / vs.length }));
+}
 
 /** Veo necesita la imagen en una URL pública: va al bucket del sitio. */
 async function subirAvatar(avatarNombre) {
@@ -106,6 +198,12 @@ export async function generarIntro(avatarNombre = 'ana', numero = 1) {
       const destino = path.join(DIRS.assets, `intro-${avatarNombre}${sufijo}.mp4`);
       const bin = await fetch(mp4).then((r) => r.arrayBuffer());
       fs.writeFileSync(destino, Buffer.from(bin));
+
+      // Veo entrega siempre 8 segundos aunque la frase dure seis.
+      const corte = recortarCola(destino);
+      if (corte) console.log(`
+  cola muda recortada: queda en ${corte.toFixed(1)}s`);
+
       return destino;
     }
     if (estado === 2 || estado === 3) {
