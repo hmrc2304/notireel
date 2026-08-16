@@ -13,11 +13,11 @@ on:
         description: 'Cuántas piezas producir en esta corrida'
         default: '1'
         type: string
-      avatar:
-        description: 'Presentador'
-        default: 'ana'
+      voz:
+        description: 'Voz de la locución'
+        default: 'langa'
         type: choice
-        options: [ana, mateo, sofia]
+        options: [langa, malena, lionel]
 
 concurrency:
   group: publicar
@@ -42,9 +42,8 @@ jobs:
 
       - name: Regenerar los marcos
         # El marco se compone con HTML y se captura con el Chrome que ya trae
-        # el runner. Es más barato rehacerlo que versionar el PNG. Van los tres
-        # presentadores porque el vertical y el horizontal usan marcos distintos
-        # y el avatar se elige por corrida.
+        # el runner: es más barato rehacerlo que versionar el PNG. Salen los dos,
+        # el vertical y el horizontal.
         run: |
           node src/marco.mjs
 
@@ -60,7 +59,7 @@ jobs:
           META_PAGE_TOKEN: ${{ secrets.META_PAGE_TOKEN }}
           IG_USER_ID: ${{ secrets.IG_USER_ID }}
           FB_PAGE_ID: ${{ secrets.FB_PAGE_ID }}
-        run: node src/produccion.mjs --lote ${{ inputs.lote || '1' }} --avatar ${{ inputs.avatar || 'ana' }}
+        run: node src/produccion.mjs --lote ${{ inputs.lote || '1' }} --voz ${{ inputs.voz || 'langa' }}
 
       - name: Guardar las piezas si algo falló
         if: failure()

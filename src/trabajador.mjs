@@ -135,7 +135,7 @@ export async function procesar(trabajo) {
   if (trabajo.modo === 'avatar') {
     const { escribirGuion } = await import('./guion.mjs');
     const { locutar } = await import('./voz.mjs');
-    const { armarVideo } = await import('./video.mjs');
+    const { armarVideo, VERSION_RENDER } = await import('./video.mjs');
 
     const { fotosDeCoberturas } = await import('./imagen.mjs');
 
@@ -161,7 +161,7 @@ export async function procesar(trabajo) {
       : null;
 
     await marcarVideo(publicada.slug, {
-      videoUrl: resultado.video_url, horizontalUrl, duracion: locucion.duracion,
+      videoUrl: resultado.video_url, horizontalUrl, duracion: locucion.duracion, version: VERSION_RENDER,
     });
     // Se mide el archivo en vez de sumar los 9 s de la intro: los presentadores
     // sin intro generada arrancan directo y el número quedaba inflado.

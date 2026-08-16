@@ -18,6 +18,7 @@
 import path from 'node:path';
 import { env, DIRS, esPrincipal, salirPorError } from './config.mjs';
 import { subirVideo, marcarVideo } from './sitio.mjs';
+import { VERSION_RENDER } from './video.mjs';
 
 const URL_BASE = () => env('SUPABASE_NOTIREEL_URL');
 const CLAVE = () => env('SUPABASE_NOTIREEL_SERVICE_KEY');
@@ -34,14 +35,18 @@ async function pedir(ruta) {
 }
 
 /**
- * Las que todavía tienen el render viejo. Se reconocen por no tener la versión
- * 16:9, que es lo último que se agregó: si falta, el resto tampoco está.
+ * Las que quedaron con un render anterior al actual.
+ *
+ * El criterio es el número de versión y no un síntoma. Antes se buscaban las que
+ * no tuvieran la versión 16:9, y eso sirvió una sola vez: el cambio siguiente
+ * (sacar el presentador) no agregaba ninguna columna, así que ninguna nota
+ * "parecía" vieja y el rehacedor no encontraba nada que hacer.
  */
 function porRehacer({ slug = null, lote = 1 }) {
   if (slug) return pedir(`notas?select=*,fuentes(medio,titulo,url,fecha)&slug=eq.${encodeURIComponent(slug)}&limit=1`);
   return pedir(
     'notas?select=*,fuentes(medio,titulo,url,fecha)&video_url=not.is.null'
-    + `&video_horizontal_url=is.null&order=publicada_en.desc&limit=${lote}`,
+    + `&render_version=lt.${VERSION_RENDER}&order=publicada_en.desc&limit=${lote}`,
   );
 }
 
@@ -88,7 +93,9 @@ export async function rehacer(nota, { voz = 'langa' } = {}) {
   const videoUrl = await subirVideo(piezas.vertical, nota.slug);
   const horizontalUrl = piezas.horizontal ? await subirVideo(piezas.horizontal, `${nota.slug}-16x9`) : null;
 
-  await marcarVideo(nota.slug, { videoUrl, horizontalUrl, duracion: locucion.duracion });
+  await marcarVideo(nota.slug, {
+    videoUrl, horizontalUrl, duracion: locucion.duracion, version: VERSION_RENDER,
+  });
   console.log(`  listo${horizontalUrl ? ' (vertical y 16:9)' : ''}`);
 
   return { slug: nota.slug, videoUrl, horizontalUrl };

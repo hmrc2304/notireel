@@ -22,6 +22,19 @@ const FPS = 30;
 const COLA = 1.1;         // segundos de aire al final para que no corte seco
 
 /**
+ * Versión del render. Se sube de a uno cada vez que cambia cómo se ve la pieza,
+ * y queda guardada en la nota.
+ *
+ * Sirve para reconocer qué videos quedaron con el diseño anterior. Antes eso se
+ * deducía por síntomas, como que a la nota le faltara la versión 16:9, y ese
+ * truco se agota apenas el cambio siguiente no agrega una columna.
+ *
+ *   1  presentador con intro de 8 s, subtítulos de cuatro palabras abajo
+ *   2  sin presentador, subtítulos de a una o dos palabras dentro de la foto
+ */
+export const VERSION_RENDER = 2;
+
+/**
  * Los dos formatos que se producen de cada noticia.
  *
  * El vertical va a /reels y a las redes; el horizontal, al reproductor de la

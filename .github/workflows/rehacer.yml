@@ -13,13 +13,13 @@ on:
     inputs:
       lote:
         description: 'Cuántos videos rehacer'
-        default: '5'
+        default: '12'
         type: string
-      avatar:
-        description: 'Presentador'
-        default: 'ana'
+      voz:
+        description: 'Voz de la locución'
+        default: 'langa'
         type: choice
-        options: [ana, mateo, sofia]
+        options: [langa, malena, lionel]
 
 concurrency:
   # No puede correr junto con el despachador: los dos componen video y compiten
@@ -56,4 +56,4 @@ jobs:
           SUPABASE_NOTIREEL_URL: ${{ secrets.SUPABASE_NOTIREEL_URL }}
           SUPABASE_NOTIREEL_SERVICE_KEY: ${{ secrets.SUPABASE_NOTIREEL_SERVICE_KEY }}
           NOTIREEL_SITIO: ${{ secrets.NOTIREEL_SITIO }}
-        run: node src/rehacer.mjs --lote ${{ inputs.lote || '5' }} --avatar ${{ inputs.avatar || 'ana' }}
+        run: node src/rehacer.mjs --lote ${{ inputs.lote || '12' }} --voz ${{ inputs.voz || 'langa' }}

@@ -51,7 +51,7 @@ async function conseguirFondo(nota, indice) {
 async function producirVideo(nota, publicada, fondo, voz, fondoGenerado) {
   const { escribirGuion } = await import('./guion.mjs');
   const { locutar, creditos } = await import('./voz.mjs');
-  const { armarVideo } = await import('./video.mjs');
+  const { armarVideo, VERSION_RENDER } = await import('./video.mjs');
 
   const c = await creditos();
   if (c.restantes < MINIMO_CREDITOS_VOZ) {
@@ -91,7 +91,9 @@ async function producirVideo(nota, publicada, fondo, voz, fondoGenerado) {
     ? await subirVideo(piezas.horizontal, `${publicada.slug}-16x9`)
     : null;
 
-  await marcarVideo(publicada.slug, { videoUrl: url, horizontalUrl, duracion: locucion.duracion });
+  await marcarVideo(publicada.slug, {
+    videoUrl: url, horizontalUrl, duracion: locucion.duracion, version: VERSION_RENDER,
+  });
   const total = locucion.duracion + 9.1; // los 8s de intro más la cola del cierre
   console.log(`    video: ${(fs.statSync(mp4).size / 1024 / 1024).toFixed(1)} MB, ${total.toFixed(0)}s en total (${locucion.duracion.toFixed(0)}s de locución)${horizontalUrl ? ' + 16:9' : ''}`);
 
