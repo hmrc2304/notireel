@@ -38,7 +38,7 @@ jobs:
         # Los tres presentadores: el panel deja elegir cualquiera y el marco no
         # está versionado, así que si falta el del elegido el video sale sin él.
         run: |
-          for a in ana mateo sofia; do node src/marco.mjs $a; done
+          node src/marco.mjs
 
       - name: Despachar la cola
         env:

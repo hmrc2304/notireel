@@ -26,7 +26,7 @@ export default function EnCola({ trabajo }) {
       <span className={`chip ${trabajo.estado}`}>{ESTADO[trabajo.estado] ?? trabajo.estado}</span>
       <span className="cola-titulo">{trabajo.baul?.titular?.slice(0, 70)}</span>
       <span className="cola-modo">
-        {trabajo.modo === 'avatar' ? `video · ${trabajo.avatar}` : 'carrusel y placa'}
+        {trabajo.modo === 'avatar' ? `video · voz ${trabajo.avatar}` : 'carrusel y placa'}
       </span>
 
       {trabajo.estado === 'pendiente' && (

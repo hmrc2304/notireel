@@ -128,6 +128,10 @@ export async function procesar(trabajo) {
   const resultado = { nota_url: publicada.url };
 
   // 4. Las piezas, según lo que se haya pedido.
+  //
+  // El modo se sigue llamando 'avatar' en la base porque es el valor que ya
+  // tienen las filas y el CHECK de la tabla; hoy significa "con voz y video",
+  // sin presentador en pantalla.
   if (trabajo.modo === 'avatar') {
     const { escribirGuion } = await import('./guion.mjs');
     const { locutar } = await import('./voz.mjs');
@@ -136,7 +140,8 @@ export async function procesar(trabajo) {
     const { fotosDeCoberturas } = await import('./imagen.mjs');
 
     const guion = await escribirGuion({ ...nota, titulo: nota.titular });
-    const locucion = await locutar(guion.libreto, `${base}.mp3`);
+    // `avatar` en la cola pasó a nombrar la VOZ: ya no hay presentador en pantalla.
+    const locucion = await locutar(guion.libreto, `${base}.mp3`, { voz: trabajo.avatar ?? 'langa' });
 
     // Las imágenes que mandaron los otros medios del mismo hecho: con ellas el
     // video va cambiando de foto mientras la voz lee.
@@ -147,7 +152,7 @@ export async function procesar(trabajo) {
 
     const piezas = await armarVideo({
       nota: { ...nota, id: publicada.slug, slug: publicada.slug },
-      guion, locucion, avatar: trabajo.avatar ?? 'ana', fondo, fondoGenerado: generada, extras,
+      guion, locucion, fondo, fondoGenerado: generada, extras,
     });
 
     resultado.video_url = await subirVideo(piezas.vertical, publicada.slug);

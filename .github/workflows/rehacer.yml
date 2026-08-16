@@ -46,7 +46,7 @@ jobs:
 
       - name: Regenerar los marcos
         run: |
-          for a in ana mateo sofia; do node src/marco.mjs $a; done
+          node src/marco.mjs
 
       - name: Rehacer
         env:

@@ -111,6 +111,10 @@ export default function Feed({ notas }) {
           data-indice={i}
           ref={(el) => { refs.current[i] = el; }}
         >
+          {/* Todo el cuadro lleva a la nota: el botón queda como refuerzo visual,
+              no como la única forma de entrar. */}
+          <a href={`/nota/${n.slug}`} className="reel-tapa" aria-label={n.titular} />
+
           <video
             src={n.video_url}
             poster={n.imagen_url ?? undefined}

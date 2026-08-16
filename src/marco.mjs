@@ -1,9 +1,13 @@
 /**
- * Marco fijo del video: 1080x1920 PNG con transparencia.
+ * Marco fijo del video, con transparencia.
  *
- * Lleva SOLO lo que no cambia entre noticias (logo, avatar en círculo, degradados,
- * pie con el dominio). Todo lo dinámico (sección, hook, subtítulos) se dibuja
- * después con libass, que es mucho más barato que rerenderizar el marco.
+ * Lleva SOLO lo que no cambia entre noticias (logo, degradados, pie con el
+ * dominio). Todo lo dinámico (sección, hook, subtítulos) se dibuja después con
+ * libass, que es mucho más barato que rerenderizar el marco.
+ *
+ * Sin presentador: las piezas son la noticia y nada más. Mientras hubo avatar,
+ * el marco se generaba uno por cara y el video abría con ocho segundos de
+ * alguien diciendo el nombre de la marca. Se sacó por decisión de producto.
  *
  * Se compone con HTML/CSS y se captura con Edge headless: control pixel-perfect
  * sobre la tipografía y los colores de marca, cosa que drawtext no da.
@@ -55,18 +59,18 @@ const FORMATOS = {
     piso: 900, costura: 1120, techo: 320,
     logoTop: 54, logoLeft: 52, logoFuente: 40, lemaFuente: 25,
     acentoTop: 1268, acentoAncho: 78,
-    firmaLeft: 60, firmaBottom: 74, avatar: 152, pieFuente: 33, pieChica: 24,
+    firmaLeft: 60, firmaBottom: 74, pieFuente: 33, pieChica: 24,
   },
   horizontal: {
     ancho: 1920, alto: 1080,
     piso: 560, costura: null, techo: 240,
     logoTop: 44, logoLeft: 56, logoFuente: 36, lemaFuente: 23,
     acentoTop: null, acentoAncho: 64,
-    firmaLeft: 56, firmaBottom: 46, avatar: 104, pieFuente: 26, pieChica: 19,
+    firmaLeft: 56, firmaBottom: 46, pieFuente: 26, pieChica: 19,
   },
 };
 
-function html(avatarDataUri, formato = 'vertical') {
+function html(formato = 'vertical') {
   const f = FORMATOS[formato] ?? FORMATOS.vertical;
   return `<!doctype html><meta charset="utf-8">
 <style>
@@ -114,16 +118,9 @@ function html(avatarDataUri, formato = 'vertical') {
     display: ${f.acentoTop ? "flex" : "none"}; }
   .acento i { display: block; width: ${f.acentoAncho}px; height: 10px; border-radius: 6px; }
 
-  /* Firma inferior: avatar y dominio en una sola fila, bien por debajo de los
-     subtítulos. Antes el avatar quedaba a la altura del texto y se pisaban. */
-  .firma { position: absolute; left: ${f.firmaLeft}px; bottom: ${f.firmaBottom}px; display: flex; align-items: center; gap: 22px; }
-
-  .avatar {
-    width: ${f.avatar}px; height: ${f.avatar}px; border-radius: 999px; flex: 0 0 ${f.avatar}px;
-    border: 5px solid #fff; overflow: hidden;
-    box-shadow: 0 14px 38px rgba(0,0,0,.55);
-  }
-  .avatar img { width: 100%; height: 100%; object-fit: cover; object-position: center 20%; }
+  /* Firma inferior, bien por debajo de los subtítulos. */
+  .firma { position: absolute; left: ${f.firmaLeft}px; bottom: ${f.firmaBottom}px; display: flex; align-items: center; gap: 18px; }
+  .firma .barrita { width: 6px; align-self: stretch; border-radius: 3px; background: ${MARCA.azul}; }
 
   .pie { color: #fff; font-size: ${f.pieFuente}px; font-weight: 800; letter-spacing: .2px; line-height: 1.15; }
   .pie span { display: block; color: ${MARCA.azulClaro}; font-size: ${f.pieChica}px; font-weight: 600; margin-top: 5px; }
@@ -144,23 +141,19 @@ function html(avatarDataUri, formato = 'vertical') {
 </div>
 
 <div class="firma">
-  <div class="avatar"><img src="${avatarDataUri}"></div>
+  <div class="barrita"></div>
   <div class="pie">${MARCA.dominio}<span>La nota completa, con todas las fuentes</span></div>
 </div>
 `;
 }
 
-export function generarMarco(avatarNombre = 'ana', formato = 'vertical') {
+export function generarMarco(formato = 'vertical') {
   const f = FORMATOS[formato] ?? FORMATOS.vertical;
-  const sufijo = formato === 'vertical' ? '' : `-${formato}`;
-  const avatarPng = path.join(DIRS.assets, `avatar-${avatarNombre}.png`);
-  if (!fs.existsSync(avatarPng)) throw new Error(`Falta ${avatarPng}. Corré: node src/avatar.mjs ${avatarNombre}`);
 
-  const dataUri = `data:image/png;base64,${fs.readFileSync(avatarPng).toString('base64')}`;
-  const htmlPath = path.join(DIRS.temp, `marco-${avatarNombre}${sufijo}.html`);
-  fs.writeFileSync(htmlPath, html(dataUri, formato), 'utf8');
+  const htmlPath = path.join(DIRS.temp, `marco-${formato}.html`);
+  fs.writeFileSync(htmlPath, html(formato), 'utf8');
 
-  const destino = path.join(DIRS.assets, `marco-${avatarNombre}${sufijo}.png`);
+  const destino = path.join(DIRS.assets, `marco-${formato}.png`);
   if (fs.existsSync(destino)) fs.unlinkSync(destino);
 
   execFileSync(navegador(), [
@@ -184,8 +177,7 @@ export function generarMarco(avatarNombre = 'ana', formato = 'vertical') {
 }
 
 if (esPrincipal(import.meta.url)) {
-  const nombre = process.argv[2] ?? 'ana';
   for (const formato of ['vertical', 'horizontal']) {
-    console.log(`Marco ${formato} de ${nombre} -> ${generarMarco(nombre, formato)}`);
+    console.log(`Marco ${formato} -> ${generarMarco(formato)}`);
   }
 }

@@ -45,7 +45,7 @@ function porRehacer({ slug = null, lote = 1 }) {
   );
 }
 
-export async function rehacer(nota, { avatar = 'ana' } = {}) {
+export async function rehacer(nota, { voz = 'langa' } = {}) {
   const { escribirGuion } = await import('./guion.mjs');
   const { locutar, creditos } = await import('./voz.mjs');
   const { armarVideo, bajarImagen } = await import('./video.mjs');
@@ -73,14 +73,14 @@ export async function rehacer(nota, { avatar = 'ana' } = {}) {
   }
 
   const guion = await escribirGuion({ ...nota, titulo: nota.titular });
-  const locucion = await locutar(guion.libreto, `${base}.mp3`);
+  const locucion = await locutar(guion.libreto, `${base}.mp3`, { voz });
 
   const extras = await fotosDeCoberturas(nota.fuentes, base, bajarImagen, { evitar: [nota.imagen_url] });
   console.log(`  ${extras.length + 1} fotos · locución de ${locucion.duracion.toFixed(0)}s`);
 
   const piezas = await armarVideo({
     nota: { ...nota, id: nota.slug },
-    guion, locucion, avatar, fondo, fondoGenerado: Boolean(nota.imagen_generada), extras,
+    guion, locucion, fondo, fondoGenerado: Boolean(nota.imagen_generada), extras,
   });
 
   // Mismo nombre de archivo que la vez anterior: el bucket lo sobrescribe y la
@@ -103,16 +103,16 @@ if (esPrincipal(import.meta.url)) {
 
     const slug = arg('slug');
     const lote = Number(arg('lote') ?? 1);
-    const avatar = arg('avatar') ?? 'ana';
+    const voz = arg('voz') ?? 'langa';
 
     const notas = await porRehacer({ slug, lote });
     if (!notas.length) {
       console.log('No hay videos con el render viejo.');
     } else {
-      console.log(`${notas.length} video(s) por rehacer con ${avatar}`);
+      console.log(`${notas.length} video(s) por rehacer con la voz ${voz}`);
       let hechos = 0;
       for (const n of notas) {
-        const r = await rehacer(n, { avatar });
+        const r = await rehacer(n, { voz });
         if (r) hechos++;
       }
       console.log(`\n${hechos} de ${notas.length} rehechos.`);

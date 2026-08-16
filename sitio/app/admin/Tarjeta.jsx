@@ -3,10 +3,14 @@
 import { useActionState, useState } from 'react';
 import { pedirPieza, descartarNoticia } from './acciones';
 
-const AVATARES = [
-  { id: 'ana', nombre: 'Ana' },
-  { id: 'mateo', nombre: 'Mateo' },
-  { id: 'sofia', nombre: 'Sofía' },
+/**
+ * Las voces de la locución. Antes acá se elegía la cara del presentador; el
+ * presentador se sacó y lo que queda por elegir es quién lee.
+ */
+const VOCES = [
+  { id: 'langa', nombre: 'Langa' },
+  { id: 'malena', nombre: 'Malena' },
+  { id: 'lionel', nombre: 'Lionel' },
 ];
 
 const SELLO = {
@@ -24,7 +28,7 @@ const SELLO = {
  */
 export default function Tarjeta({ nota }) {
   const [abierto, setAbierto] = useState(false);
-  const [avatar, setAvatar] = useState('ana');
+  const [voz, setVoz] = useState('langa');
   const [estado, accion, enviando] = useActionState(pedirPieza, null);
   const [estadoDescarte, accionDescarte] = useActionState(descartarNoticia, null);
 
@@ -67,27 +71,27 @@ export default function Tarjeta({ nota }) {
 
             <div className="opciones">
               <button type="submit" name="modo" value="simple" className="btn-opcion" disabled={enviando}>
-                <strong>Sin presentador</strong>
-                <span>Titular y foto: carrusel y placa</span>
+                <strong>Carrusel y placa</strong>
+                <span>Sin voz: titular y foto, para el feed</span>
               </button>
 
               <div className="con-avatar">
                 <button type="submit" name="modo" value="avatar" className="btn-opcion destacado" disabled={enviando}>
-                  <strong>Con presentador</strong>
-                  <span>Video con intro del avatar y locución</span>
+                  <strong>Video</strong>
+                  <span>Locución, subtítulos y las fotos de cada cobertura</span>
                 </button>
 
                 <div className="avatares">
-                  {AVATARES.map((a) => (
-                    <label key={a.id} className={avatar === a.id ? 'elegido' : ''}>
+                  {VOCES.map((v) => (
+                    <label key={v.id} className={voz === v.id ? 'elegido' : ''}>
                       <input
                         type="radio"
                         name="avatar"
-                        value={a.id}
-                        checked={avatar === a.id}
-                        onChange={() => setAvatar(a.id)}
+                        value={v.id}
+                        checked={voz === v.id}
+                        onChange={() => setVoz(v.id)}
                       />
-                      {a.nombre}
+                      {v.nombre}
                     </label>
                   ))}
                 </div>

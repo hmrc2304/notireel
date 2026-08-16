@@ -48,7 +48,7 @@ async function conseguirFondo(nota, indice) {
 }
 
 /** Video de una nota ya publicada: guion, locución, composición y subida. */
-async function producirVideo(nota, publicada, fondo, avatar, voz, fondoGenerado) {
+async function producirVideo(nota, publicada, fondo, voz, fondoGenerado) {
   const { escribirGuion } = await import('./guion.mjs');
   const { locutar, creditos } = await import('./voz.mjs');
   const { armarVideo } = await import('./video.mjs');
@@ -77,7 +77,6 @@ async function producirVideo(nota, publicada, fondo, avatar, voz, fondoGenerado)
     nota: { ...nota, id: publicada.slug, slug: publicada.slug },
     guion,
     locucion,
-    avatar,
     fondo,
     fondoGenerado,
     extras,
@@ -100,18 +99,18 @@ async function producirVideo(nota, publicada, fondo, avatar, voz, fondoGenerado)
 }
 
 /** Carrusel y placa: sin locución, cuestan centavos. */
-async function producirEstaticas(nota, publicada, fondo, avatar, generada) {
+async function producirEstaticas(nota, publicada, fondo, generada) {
   const { armarCarrusel, armarPlaca } = await import('./tarjetas.mjs');
   const id = publicada.slug.slice(0, 24);
 
   const placa = armarPlaca({ nota, foto: fondo, id, imagenGenerada: generada });
-  const { tarjetas } = await armarCarrusel({ nota, foto: fondo, avatar, id, imagenGenerada: generada });
+  const { tarjetas } = await armarCarrusel({ nota, foto: fondo, id, imagenGenerada: generada });
   console.log(`    estáticas: placa + carrusel de ${tarjetas.length}`);
 
   return { placa, tarjetas };
 }
 
-export async function correr({ lote = 1, avatar = 'ana', voz = 'langa', soloNota = false } = {}) {
+export async function correr({ lote = 1, voz = 'langa', soloNota = false } = {}) {
   const { producir } = await import('./redactar.mjs');
 
   // Se piden más grupos que piezas: algunos se descartan por ya publicados.
@@ -144,11 +143,11 @@ export async function correr({ lote = 1, avatar = 'ana', voz = 'langa', soloNota
 
     if (!soloNota && fondo) {
       if (llevaVideo(hechas.length)) {
-        const v = await producirVideo(nota, publicada, fondo, avatar, voz, generada);
+        const v = await producirVideo(nota, publicada, fondo, voz, generada);
         registro.conVideo = Boolean(v);
         if (v) registro.video = v.url;
       } else {
-        await producirEstaticas(nota, publicada, fondo, avatar, generada);
+        await producirEstaticas(nota, publicada, fondo, generada);
       }
     }
 
@@ -163,7 +162,6 @@ if (esPrincipal(import.meta.url)) {
     const lote = Number(arg('lote', '1'));
     const hechas = await correr({
       lote,
-      avatar: arg('avatar', 'ana'),
       voz: arg('voz', 'langa'),
       soloNota: flag('solo-nota'),
     });

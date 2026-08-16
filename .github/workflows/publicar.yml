@@ -46,7 +46,7 @@ jobs:
         # presentadores porque el vertical y el horizontal usan marcos distintos
         # y el avatar se elige por corrida.
         run: |
-          for a in ana mateo sofia; do node src/marco.mjs $a; done
+          node src/marco.mjs
 
       - name: Producir y publicar
         env:

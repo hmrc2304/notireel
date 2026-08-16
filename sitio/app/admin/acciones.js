@@ -41,7 +41,8 @@ export async function pedirPieza(_previo, formulario) {
 
   const baulId = String(formulario.get('baulId') ?? '');
   const modo = String(formulario.get('modo') ?? 'simple');
-  const avatar = String(formulario.get('avatar') ?? 'ana');
+  // El campo sigue llamándose `avatar` en la cola: hoy lleva el nombre de la voz.
+  const avatar = String(formulario.get('avatar') ?? 'langa');
   const cuerpo = String(formulario.get('cuerpo') ?? 'foto');
 
   if (!baulId) return { error: 'Falta la noticia.' };
@@ -52,7 +53,7 @@ export async function pedirPieza(_previo, formulario) {
     revalidatePath('/admin');
     return r.yaEstaba
       ? { ok: true, mensaje: 'Ya estaba en la cola.' }
-      : { ok: true, mensaje: modo === 'avatar' ? 'En cola: video con presentador.' : 'En cola: carrusel y placa.' };
+      : { ok: true, mensaje: modo === 'avatar' ? 'En cola: video con locución.' : 'En cola: carrusel y placa.' };
   } catch (e) {
     return { error: e.message.slice(0, 160) };
   }

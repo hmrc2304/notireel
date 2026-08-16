@@ -9,11 +9,17 @@
  * nunca queda una palabra huérfana colgando.
  */
 
-// 20 caracteres es el ancho real que entra en una línea con Montserrat a 64px
-// dentro de los 1080 menos márgenes. Con 26 el texto se salía por la derecha.
-const MAX_CHARS = 20;
-const MAX_PALABRAS = 4;
-const MAX_SEG = 2.4;
+/**
+ * Los subtítulos van de a una o dos palabras, grandes y centrados: es el estilo
+ * de reel, donde el ojo salta al centro y lee sin recorrer una línea entera.
+ *
+ * Antes iban de a cuatro palabras en bloques de veinte caracteres, que es
+ * formato de subtítulo de película: correcto para leer una escena, flojo para un
+ * video que se mira sin sonido y con el pulgar listo para pasar.
+ */
+const MAX_CHARS = 15;
+const MAX_PALABRAS = 2;
+const MAX_SEG = 1.6;
 
 /**
  * Geometría por formato.
@@ -27,15 +33,19 @@ const MAX_SEG = 2.4;
 const GEOMETRIA = {
   vertical: {
     ancho: 1080, alto: 1920,
-    hookY: 1268, subY: 1700, hookFuente: 96, subFuente: 64,
+    // El subtítulo va DENTRO de la foto, cerca de su borde de abajo. Debajo del
+    // titular chocaba con el botón que el sitio pone encima del reel, y pegado
+    // al pie competía con la firma. Acá no lo tapa nada y es donde el ojo ya
+    // está mirando.
+    hookY: 1300, subY: 1120, hookFuente: 92, subFuente: 78,
     chipX: 1020, chipY: 74, selloX: 52, selloY: 150,
-    maxChars: 20,
+    maxChars: 15,
   },
   horizontal: {
     ancho: 1920, alto: 1080,
-    hookY: 700, subY: 1010, hookFuente: 72, subFuente: 48,
+    hookY: 700, subY: 560, hookFuente: 70, subFuente: 62,
     chipX: 1860, chipY: 54, selloX: 56, selloY: 126,
-    maxChars: 34,
+    maxChars: 18,
   },
 };
 
@@ -222,7 +232,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     const escala = exceso > 1 ? Math.max(62, Math.round(100 / exceso)) : 100;
     filas.push(
       `Dialogue: 3,${t(b.desde)},${t(b.hasta)},Sub,,0,0,0,,` +
-      `{\\pos(${g.ancho / 2},${g.subY})\\an2\\fscx${Math.round(escala * 0.93)}\\fscy93` +
+      `{\\pos(${g.ancho / 2},${g.subY})\\an5\\fscx${Math.round(escala * 0.93)}\\fscy93` +
       `\\t(0,110,\\fscx${escala}\\fscy100)}${escapar(b.texto)}`,
     );
   }
