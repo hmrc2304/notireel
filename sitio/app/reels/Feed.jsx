@@ -122,13 +122,13 @@ export default function Feed({ notas }) {
 
           <div className="reel-velo" />
 
+          {/*
+            Solo el botón. El video ya trae quemados el titular, la sección, el
+            contador de fuentes y los subtítulos: repetirlos acá los superponía
+            unos sobre otros y tapaba justo la parte de abajo del cuadro, que es
+            donde el video pone su texto.
+          */}
           <div className="reel-datos">
-            <div className="reel-sellos">
-              <span className="chip-seccion" style={{ color: '#4FBDB2' }}>{n.seccion}</span>
-              {n.medios_count > 1 && <span className="reel-fuentes">{n.medios_count} fuentes</span>}
-            </div>
-            <h2>{n.titular}</h2>
-            <p>{n.bajada}</p>
             <a href={`/nota/${n.slug}`} className="reel-cta">
               Leer la nota con todas las fuentes
             </a>

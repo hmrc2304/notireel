@@ -594,19 +594,19 @@ img { max-width: 100%; display: block; }
   background: #000;
 }
 
+/* El velo empieza abajo de todo: el video ya trae su propio degradado y su texto,
+   y oscurecer el cuadro entero solo apagaba la foto. */
 .reel-velo {
   position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(to bottom, rgba(0,0,0,.45) 0%, transparent 22%, transparent 52%, rgba(0,0,0,.88) 100%);
+  background: linear-gradient(to bottom, transparent 0%, transparent 74%, rgba(0,0,0,.72) 100%);
 }
 
 .reel-datos {
   position: absolute;
   left: 0; right: 0; bottom: 0;
-  padding: 26px 22px calc(30px + env(safe-area-inset-bottom));
-  display: flex; flex-direction: column; gap: 11px;
+  padding: 18px 22px calc(22px + env(safe-area-inset-bottom));
+  display: flex; justify-content: center;
   color: #fff;
-  max-width: 680px;
-  margin: 0 auto;
 }
 
 .reel-sellos { display: flex; align-items: center; gap: 14px; }
@@ -626,8 +626,6 @@ img { max-width: 100%; display: block; }
 }
 
 .reel-cta {
-  align-self: flex-start;
-  margin-top: 4px;
   background: #12A093; color: #fff;
   font-size: 15px; font-weight: 800;
   padding: 12px 20px; border-radius: 999px;
