@@ -53,12 +53,12 @@ export async function rehacer(nota, { avatar = 'ana' } = {}) {
 
   console.log(`\n▸ ${nota.titular.slice(0, 62)}`);
 
-  // El libreto ronda los 450 caracteres: unas catorce letras por segundo de
-  // habla, por treinta segundos. No depende del largo de la nota, que el
-  // guionista resume igual.
+  // Un libreto entero salió 82 créditos, medido: el modelo flash cobra bastante
+  // menos de un crédito por carácter. Con el mínimo puesto en los ~450 caracteres
+  // del texto se frenaba con crédito de sobra para cinco videos más.
   const c = await creditos();
-  if (c.restantes < 500) {
-    console.log(`  sin voz: quedan ${c.restantes} créditos y un libreto son unos 450`);
+  if (c.restantes < Number(env("VOZ_MINIMO", false) ?? 150)) {
+    console.log(`  sin voz: quedan ${c.restantes} créditos y un libreto gasta unos 90`);
     return null;
   }
 

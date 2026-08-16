@@ -1,0 +1,59 @@
+name: Rehacer videos viejos
+
+# Cada mejora del motor solo se aplica a lo que se produce de ahí en adelante, así
+# que lo ya publicado queda con el render anterior. Esto lo empareja.
+#
+# Corre a las 23:30 UTC porque los créditos de voz se renuevan a las 22:43: media
+# hora después hay cupo y todavía queda el día entero para la producción normal.
+# El lote es chico a propósito, para no comerse la voz que necesita el cron.
+on:
+  schedule:
+    - cron: '30 23 * * *'
+  workflow_dispatch:
+    inputs:
+      lote:
+        description: 'Cuántos videos rehacer'
+        default: '5'
+        type: string
+      avatar:
+        description: 'Presentador'
+        default: 'ana'
+        type: choice
+        options: [ana, mateo, sofia]
+
+concurrency:
+  # No puede correr junto con el despachador: los dos componen video y compiten
+  # por los créditos de voz.
+  group: video
+  cancel-in-progress: false
+
+jobs:
+  rehacer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Instalar ffmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+
+      - name: Regenerar los marcos
+        run: |
+          for a in ana mateo sofia; do node src/marco.mjs $a; done
+
+      - name: Rehacer
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          KIE_API_KEY: ${{ secrets.KIE_API_KEY }}
+          SUPABASE_NOTIREEL_URL: ${{ secrets.SUPABASE_NOTIREEL_URL }}
+          SUPABASE_NOTIREEL_SERVICE_KEY: ${{ secrets.SUPABASE_NOTIREEL_SERVICE_KEY }}
+          NOTIREEL_SITIO: ${{ secrets.NOTIREEL_SITIO }}
+        run: node src/rehacer.mjs --lote ${{ inputs.lote || '5' }} --avatar ${{ inputs.avatar || 'ana' }}

@@ -14,7 +14,7 @@ on:
 concurrency:
   # Dos corridas a la vez tomarían el mismo trabajo. El PATCH condicional del
   # trabajador ya lo evita, pero no hace falta gastar dos runners para eso.
-  group: trabajador
+  group: video
   cancel-in-progress: false
 
 jobs:
