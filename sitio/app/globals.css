@@ -609,7 +609,17 @@ img { max-width: 100%; display: block; }
 
 /* El scroll lo hace el navegador con snap; animarlo a mano se siente pesado. */
 .feed {
-  --barra-reel: 62px;
+  /**
+   * La barra se queda con lo que sobra, no con un alto fijo.
+   *
+   * El video es 9:16, así que para llenar el ancho de la pantalla necesita
+   * ancho×16/9 de alto. Con una barra fija de 62px ese alto no siempre alcanzaba
+   * y el video quedaba con franjas negras a los costados: 4px por lado en un
+   * iPhone con la barra de Safari, 17px en uno chico. Calculada como el
+   * sobrante, la barra se agranda donde hay lugar y se achica donde no, y el
+   * video llena el ancho. El mínimo es lo que mide el botón.
+   */
+  --barra-reel: clamp(44px, calc(100dvh - 100vw * 16 / 9), 92px);
   position: fixed;
   inset: 0;
   overflow-y: scroll;
