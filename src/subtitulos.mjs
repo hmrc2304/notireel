@@ -10,16 +10,13 @@
  */
 
 /**
- * Los subtítulos van de a una o dos palabras, grandes y centrados: es el estilo
- * de reel, donde el ojo salta al centro y lee sin recorrer una línea entera.
- *
- * Antes iban de a cuatro palabras en bloques de veinte caracteres, que es
- * formato de subtítulo de película: correcto para leer una escena, flojo para un
- * video que se mira sin sonido y con el pulgar listo para pasar.
+ * Los subtítulos van en bloques de hasta cuatro palabras, alineados con el
+ * titular: los dos arrancan en el mismo margen izquierdo y se leen como un
+ * bloque de texto, no como palabras sueltas flotando.
  */
-const MAX_CHARS = 15;
-const MAX_PALABRAS = 2;
-const MAX_SEG = 1.6;
+const MAX_CHARS = 24;
+const MAX_PALABRAS = 4;
+const MAX_SEG = 2.2;
 
 /**
  * Geometría por formato.
@@ -33,19 +30,20 @@ const MAX_SEG = 1.6;
 const GEOMETRIA = {
   vertical: {
     ancho: 1080, alto: 1920,
-    // El subtítulo va DENTRO de la foto, cerca de su borde de abajo. Debajo del
-    // titular chocaba con el botón que el sitio pone encima del reel, y pegado
-    // al pie competía con la firma. Acá no lo tapa nada y es donde el ojo ya
-    // está mirando.
-    hookY: 1300, subY: 1120, hookFuente: 92, subFuente: 78,
+    // Titular y subtítulo comparten la franja de abajo, los dos arrancando en el
+    // mismo margen izquierdo: se leen como el bloque de texto de una placa, en
+    // vez de flotar centrados con aire muerto entre medio.
+    margen: 62,
+    hookY: 1298, subY: 1596, hookFuente: 88, subFuente: 64,
     chipX: 1020, chipY: 74, selloX: 52, selloY: 150,
-    maxChars: 15,
+    maxChars: 24,
   },
   horizontal: {
     ancho: 1920, alto: 1080,
-    hookY: 700, subY: 560, hookFuente: 70, subFuente: 62,
+    margen: 58,
+    hookY: 686, subY: 906, hookFuente: 66, subFuente: 52,
     chipX: 1860, chipY: 54, selloX: 56, selloY: 126,
-    maxChars: 18,
+    maxChars: 32,
   },
 };
 
@@ -214,7 +212,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
   // cualquier bloque que creciera se le metía encima. Anclados en direcciones
   // opuestas crecen hacia afuera y el aire del medio nunca se pierde.
   filas.push(
-    `Dialogue: 2,0:00:00.00,${fin},Hook,,0,0,0,,{\\pos(${g.ancho / 2},${g.hookY})\\an8\\fad(220,0)}${partirHook(hook)}`,
+    `Dialogue: 2,0:00:00.00,${fin},Hook,,0,0,0,,{\\pos(${g.margen},${g.hookY})\\an7\\fad(220,0)}${partirHook(hook)}`,
   );
 
   // Cuando el fondo no es una foto del hecho sino una imagen generada, se dice.
@@ -232,7 +230,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     const escala = exceso > 1 ? Math.max(62, Math.round(100 / exceso)) : 100;
     filas.push(
       `Dialogue: 3,${t(b.desde)},${t(b.hasta)},Sub,,0,0,0,,` +
-      `{\\pos(${g.ancho / 2},${g.subY})\\an5\\fscx${Math.round(escala * 0.93)}\\fscy93` +
+      `{\\pos(${g.margen},${g.subY})\\an7\\fscx${Math.round(escala * 0.93)}\\fscy93` +
       `\\t(0,110,\\fscx${escala}\\fscy100)}${escapar(b.texto)}`,
     );
   }

@@ -31,8 +31,9 @@ const COLA = 1.1;         // segundos de aire al final para que no corte seco
  *
  *   1  presentador con intro de 8 s, subtítulos de cuatro palabras abajo
  *   2  sin presentador, subtítulos de a una o dos palabras dentro de la foto
+ *   3  titular y subtítulo alineados a la izquierda, en la franja de abajo
  */
-export const VERSION_RENDER = 2;
+export const VERSION_RENDER = 3;
 
 /**
  * Los dos formatos que se producen de cada noticia.
