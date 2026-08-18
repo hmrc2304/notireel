@@ -288,9 +288,21 @@ img { max-width: 100%; display: block; }
   padding-top: 22px;
   border-top: 1px solid var(--linea);
 }
+/**
+ * Las tres comparten fila, así que sus partes tienen que arrancar a la misma
+ * altura. El titular reserva dos renglones aunque use uno: si cada uno mide lo
+ * suyo, las fotos empiezan escalonadas y el pie de cada tarjeta queda a distinta
+ * altura que el de al lado.
+ */
+.compacta { display: flex; flex-direction: column; height: 100%; }
 .compacta a { display: flex; flex-direction: column; gap: 6px; }
-.compacta h3 { margin: 0; font-size: 16.5px; line-height: 1.26; font-weight: 700; text-wrap: pretty; }
+.compacta h3 {
+  margin: 0; font-size: 16.5px; line-height: 1.26; font-weight: 700; text-wrap: pretty;
+  min-height: calc(2 * 1.26em);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
 .compacta:hover h3 { color: var(--acento); }
+.compacta .meta-linea.apretada { margin-top: auto; padding-top: 10px; }
 .compacta .marco {
   position: relative;
   aspect-ratio: 16 / 10;
@@ -429,6 +441,10 @@ img { max-width: 100%; display: block; }
   font-weight: 800;
   letter-spacing: -.012em;
   text-wrap: pretty;
+  /* Tres renglones reservados: los titulares de la grilla van de uno a tres y
+     sin esto cada foto de la fila arranca a una altura distinta. */
+  min-height: calc(3 * 1.22em);
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
 }
 .tarjeta:hover h3 { color: var(--acento); }
 .tarjeta p {
