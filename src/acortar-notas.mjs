@@ -27,28 +27,50 @@ const cab = () => {
   return { apikey: k, Authorization: `Bearer ${k}`, 'Content-Type': 'application/json' };
 };
 
+/**
+ * Se pide una lista de párrafos, no un texto suelto.
+ *
+ * Pedir "de 200 a 290 palabras" no funciona: es un presupuesto global que el
+ * modelo no puede verificar mientras escribe, así que recorta hasta que le
+ * parece suficiente y frena. Una tanda entera volvió arriba de las 350. Un tope
+ * por párrafo sí lo puede sostener, porque cada unidad es corta y el límite
+ * vuelve a aparecer cuatro veces en lugar de una. Cuatro párrafos de 65 dan 260.
+ */
 const HERRAMIENTA = {
   name: 'entregar_nota_corta',
   input_schema: {
     type: 'object',
     properties: {
-      cuerpo: {
-        type: 'string',
-        description: 'la nota condensada, de 200 a 290 palabras, en cuatro o cinco párrafos separados por una línea en blanco',
+      parrafos: {
+        type: 'array',
+        minItems: 4,
+        maxItems: 4,
+        items: {
+          type: 'string',
+          description: 'un párrafo de DOS frases, entre 45 y 65 palabras. Nunca más de 65.',
+        },
+        description: 'los cuatro párrafos de la nota condensada',
       },
     },
-    required: ['cuerpo'],
+    required: ['parrafos'],
   },
 };
 
 const SISTEMA = `Condensás notas periodísticas ya publicadas a un formato más corto.
+
+LA FORMA es exactamente esta, y no se negocia:
+- CUATRO párrafos, ni uno más ni uno menos.
+- Cada párrafo tiene DOS frases y entre 45 y 65 palabras. Contá las palabras de
+  cada párrafo antes de entregarlo.
+- Párrafo 1: qué pasó, dónde y cuándo. Párrafo 2: los datos duros y quién los da.
+  Párrafo 3: en qué difieren los medios entre sí, o el dato que falta. Párrafo 4:
+  qué sigue o cuál es la consecuencia.
 
 REGLAS DURAS:
 - SOLO podés usar información que esté en el texto que recibís. No agregues nada,
   ni contexto, ni datos que sepas del tema. Condensar no es reescribir de memoria.
 - Conservá SIEMPRE las atribuciones: "según la BBC", "de acuerdo con EFE". Si el
   original dice que dos medios difieren en una cifra, eso se queda.
-- Entre 200 y 290 palabras, en cuatro o cinco párrafos de dos o tres frases.
 - Lo que se saca primero es el contexto histórico, el color y las frases de
   relleno. Lo que nunca se saca son los datos del hecho y quién los dice.
 - Español neutro, sin voseo. PROHIBIDO el guion largo (—): usá coma o punto.
@@ -68,18 +90,17 @@ async function largas(limite) {
 /**
  * Pide la versión corta y la mide.
  *
- * Pedir el largo en el prompt no alcanza: en la primera tanda de 30 notas, una
- * de 434 palabras volvió con 386. El modelo recorta lo que le parece de más y se
- * detiene, sin contar. Lo que sí funciona es devolverle su propio intento con la
- * cuenta exacta y cuántas palabras le sobran, porque entonces el objetivo deja
- * de ser "más corto" y pasa a ser un número.
+ * El tope por párrafo sostiene el largo casi siempre, pero cuando se pasa hay un
+ * segundo intento que le devuelve el párrafo culpable con su cuenta exacta. Un
+ * número concreto sobre una unidad corta es un objetivo que puede cumplir; "más
+ * corto" no lo es.
  */
-export async function acortar(nota, { intentos = 3 } = {}) {
+export async function acortar(nota, { intentos = 2 } = {}) {
   const mensajes = [{ role: 'user', content: `TITULAR: ${nota.titular}\n\n${nota.cuerpo}` }];
   let ultimo = null;
 
   for (let i = 0; i < intentos; i++) {
-    const { cuerpo } = await pedirHerramienta({
+    const { parrafos } = await pedirHerramienta({
       etapa: 'acortar',
       maxTokens: 1200,
       sistema: SISTEMA,
@@ -87,24 +108,27 @@ export async function acortar(nota, { intentos = 3 } = {}) {
       mensajes,
     });
 
-    if (!cuerpo) throw new Error('el modelo no devolvió la nota');
+    if (!parrafos?.length) throw new Error('el modelo no devolvió la nota');
+    const cuerpo = parrafos.map((p) => String(p).trim()).filter(Boolean).join('\n\n');
     const largo = contar(cuerpo);
     if (largo <= LARGO_MAXIMO) return cuerpo;
 
-    ultimo = cuerpo;
+    // Nos quedamos con el intento más corto, no con el último.
+    if (!ultimo || largo < contar(ultimo)) ultimo = cuerpo;
+
+    const cuentas = parrafos.map((p, n) => `${n + 1}: ${contar(p)} palabras`).join(', ');
     mensajes.push(
       { role: 'assistant', content: cuerpo },
       {
         role: 'user',
-        content: `Esa versión tiene ${largo} palabras y el máximo son ${LARGO_MAXIMO}. `
-          + `Sobran ${largo - LARGO_MAXIMO}. Volvé a entregarla con 290 palabras o menos: `
+        content: `Esa versión suma ${largo} palabras (${cuentas}) y el tope son ${LARGO_MAXIMO}. `
+          + 'Entregala de nuevo con los cuatro párrafos de 65 palabras o menos cada uno: '
           + 'sacá adjetivos, contexto de fondo y frases que no aporten un dato nuevo. '
           + 'Los datos del hecho y las atribuciones se quedan.',
       },
     );
   }
 
-  // Después de tres intentos, la más corta que logró es mejor que la original.
   return ultimo;
 }
 

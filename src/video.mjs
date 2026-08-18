@@ -19,7 +19,7 @@ import { DIRS , esPrincipal } from './config.mjs';
 import { construirASS } from './subtitulos.mjs';
 
 const FPS = 30;
-const COLA = 1.1;         // segundos de aire al final para que no corte seco
+export const COLA = 1.1;         // segundos de aire al final para que no corte seco
 
 /**
  * Versión del render. Se sube de a uno cada vez que cambia cómo se ve la pieza,

@@ -54,7 +54,16 @@ const HERRAMIENTA = {
     properties: {
       titular: { type: 'string', description: 'titular propio en español, concreto, sin signos de exclamación ni mayúsculas sostenidas' },
       bajada: { type: 'string', description: 'una o dos frases que amplían el titular, hasta 200 caracteres' },
-      cuerpo: { type: 'string', description: 'la nota en español, de 200 a 290 palabras, en cuatro o cinco párrafos cortos separados por una línea en blanco' },
+      // Párrafos, no un texto suelto: un presupuesto global de palabras es algo
+      // que el modelo no puede verificar mientras escribe, y se va largo. Un
+      // tope por párrafo sí lo sostiene, porque el límite reaparece en cada uno.
+      parrafos: {
+        type: 'array',
+        minItems: 4,
+        maxItems: 4,
+        items: { type: 'string', description: 'un párrafo de DOS frases, entre 45 y 65 palabras. Nunca más de 65.' },
+        description: 'los cuatro párrafos de la nota, en español',
+      },
       seccion: { type: 'string', enum: ['Mundo', 'Política', 'Economía', 'Sociedad', 'Tecnología', 'Deportes', 'Ciencia'] },
       contraste: {
         type: 'string',
@@ -67,7 +76,7 @@ const HERRAMIENTA = {
       },
       etiquetas: { type: 'array', items: { type: 'string' }, description: '4 a 6 temas o entidades de la nota' },
     },
-    required: ['titular', 'bajada', 'cuerpo', 'seccion', 'contraste', 'certeza', 'etiquetas'],
+    required: ['titular', 'bajada', 'parrafos', 'seccion', 'contraste', 'certeza', 'etiquetas'],
   },
 };
 
@@ -87,10 +96,14 @@ REGLAS DURAS:
 - Frases cortas y directas. Nada de adjetivos de relleno ni de suspenso artificial.
 - PROHIBIDO el guion largo (—). Usá coma o punto.
 - Nada de "en un hecho sin precedentes", "lo que nadie te cuenta" ni fórmulas de clickbait.
-- CORTA: entre 200 y 290 palabras, en cuatro o cinco párrafos de dos o tres frases.
-  Entre un minuto y un minuto y medio de lectura, nunca más. El lector llega desde un video de treinta segundos:
-  viene a confirmar el hecho y a ver quién lo dice, no a leer una crónica. Si el
-  material da para menos, escribí menos.
+- CORTA, y la forma no se negocia: CUATRO párrafos, ni uno más ni uno menos, cada uno
+  de DOS frases y entre 45 y 65 palabras. Contá las palabras de cada párrafo antes de
+  entregarlo. Eso da poco más de un minuto de lectura, nunca más. El lector llega desde
+  un video de treinta segundos: viene a confirmar el hecho y a ver quién lo dice, no a
+  leer una crónica.
+- Párrafo 1: qué pasó, dónde y cuándo. Párrafo 2: los datos duros y quién los da.
+  Párrafo 3: en qué difieren los medios entre sí. Párrafo 4: qué sigue o cuál es la
+  consecuencia.
 - Lo necesario y nada más: qué pasó, dónde, cuándo, quién lo dice y en qué difieren
   entre sí. Sin contexto histórico, sin "cabe recordar que", sin detalles de color.
   Cada frase tiene que aportar un dato que el lector no tenía.
@@ -203,12 +216,16 @@ export async function redactarNota(grupoCrudo) {
     mensajes: [{ role: 'user', content: material(grupo) }],
   });
 
-  n.cuerpo = n.cuerpo.replace(/\s*—\s*/g, ', ');
+  n.cuerpo = (n.parrafos ?? [])
+    .map((p) => String(p).trim())
+    .filter(Boolean)
+    .join('\n\n')
+    .replace(/\s*—\s*/g, ', ');
+  delete n.parrafos;
   n.titular = n.titular.replace(/\s*—\s*/g, ', ');
 
-  // Pedir el largo en el prompt no alcanza: el modelo corta hasta que le parece
-  // suficiente, sin contar, y se va largo cada tanto. El acortador sí mide y
-  // reintenta, así que se encarga él de las que se pasan.
+  // El tope por párrafo sostiene el largo casi siempre. Cuando igual se pasa, el
+  // acortador mide y reintenta con la cuenta exacta en la mano.
   if (contarPalabras(n.cuerpo) > LARGO_MAXIMO) {
     const { acortar } = await import('./acortar-notas.mjs');
     const corto = await acortar({ titular: n.titular, cuerpo: n.cuerpo });

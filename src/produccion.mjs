@@ -60,7 +60,7 @@ async function producirVideo(nota, publicada, fondo, voz, fondoGenerado) {
   }
 
   const { fotosDeCoberturas } = await import('./imagen.mjs');
-  const { bajarImagen } = await import('./video.mjs');
+  const { bajarImagen, COLA } = await import('./video.mjs');
 
   const guion = await escribirGuion({ ...nota, titulo: nota.titular });
   console.log(`    guion: "${guion.hook}" (${guion.palabras} palabras)`);
@@ -94,7 +94,9 @@ async function producirVideo(nota, publicada, fondo, voz, fondoGenerado) {
   await marcarVideo(publicada.slug, {
     videoUrl: url, horizontalUrl, duracion: locucion.duracion, version: VERSION_RENDER,
   });
-  const total = locucion.duracion + 9.1; // los 8s de intro más la cola del cierre
+  // Antes acá se sumaban 8 segundos de intro con avatar. La intro ya no existe:
+  // lo único que sigue al final de la locución es la cola de aire del cierre.
+  const total = locucion.duracion + COLA;
   console.log(`    video: ${(fs.statSync(mp4).size / 1024 / 1024).toFixed(1)} MB, ${total.toFixed(0)}s en total (${locucion.duracion.toFixed(0)}s de locución)${horizontalUrl ? ' + 16:9' : ''}`);
 
   return { mp4, url, guion, duracion: locucion.duracion };
