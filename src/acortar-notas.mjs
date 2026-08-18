@@ -78,6 +78,18 @@ REGLAS DURAS:
 
 const contar = (t) => String(t).trim().split(/\s+/).filter(Boolean).length;
 
+/**
+ * Normaliza lo que devuelve la herramienta.
+ *
+ * El esquema pide una lista, pero cada tanto llega el texto entero en un string
+ * con los párrafos separados por línea en blanco. Sin esto, `.map` explota y la
+ * nota se pierde después de haber pagado la llamada: pasó con dos de veintitrés.
+ */
+export function comoParrafos(parrafos) {
+  const lista = Array.isArray(parrafos) ? parrafos : String(parrafos ?? '').split(/\n\s*\n/);
+  return lista.map((p) => String(p).trim()).filter(Boolean);
+}
+
 async function largas(limite) {
   const notas = await fetch(
     `${URL_BASE()}/rest/v1/notas?select=id,slug,titular,cuerpo&order=publicada_en.desc&limit=200`,
@@ -108,15 +120,17 @@ export async function acortar(nota, { intentos = 2 } = {}) {
       mensajes,
     });
 
-    if (!parrafos?.length) throw new Error('el modelo no devolvió la nota');
-    const cuerpo = parrafos.map((p) => String(p).trim()).filter(Boolean).join('\n\n');
+    const partes = comoParrafos(parrafos);
+    if (!partes.length) throw new Error('el modelo no devolvió la nota');
+
+    const cuerpo = partes.join('\n\n');
     const largo = contar(cuerpo);
     if (largo <= LARGO_MAXIMO) return cuerpo;
 
     // Nos quedamos con el intento más corto, no con el último.
     if (!ultimo || largo < contar(ultimo)) ultimo = cuerpo;
 
-    const cuentas = parrafos.map((p, n) => `${n + 1}: ${contar(p)} palabras`).join(', ');
+    const cuentas = partes.map((p, n) => `${n + 1}: ${contar(p)} palabras`).join(', ');
     mensajes.push(
       { role: 'assistant', content: cuerpo },
       {

@@ -216,11 +216,8 @@ export async function redactarNota(grupoCrudo) {
     mensajes: [{ role: 'user', content: material(grupo) }],
   });
 
-  n.cuerpo = (n.parrafos ?? [])
-    .map((p) => String(p).trim())
-    .filter(Boolean)
-    .join('\n\n')
-    .replace(/\s*—\s*/g, ', ');
+  const { comoParrafos } = await import('./acortar-notas.mjs');
+  n.cuerpo = comoParrafos(n.parrafos).join('\n\n').replace(/\s*—\s*/g, ', ');
   delete n.parrafos;
   n.titular = n.titular.replace(/\s*—\s*/g, ', ');
 
