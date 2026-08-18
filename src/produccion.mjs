@@ -68,6 +68,11 @@ async function producirVideo(nota, publicada, fondo, voz, fondoGenerado) {
   const base = path.join(DIRS.temp, publicada.slug.slice(0, 8));
   const locucion = await locutar(guion.libreto, `${base}.mp3`, { voz });
 
+  // Se guarda apenas existe: si mañana cambia la maqueta, rehacer el video no
+  // vuelve a comprar la voz ni a pedir el guion.
+  const { guardar } = await import('./locucion-guardada.mjs');
+  await guardar(publicada.slug, { guion, voz, locucion });
+
   // Las fotos que mandaron los otros medios del mismo hecho: el video va
   // cambiando de imagen mientras la voz lee, en vez de quedarse en una sola.
   const extras = await fotosDeCoberturas(nota.fuentes, base, bajarImagen, { evitar: [nota.imagen] });

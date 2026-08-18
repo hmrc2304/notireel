@@ -80,8 +80,29 @@ export async function rehacer(nota, { voz = 'langa' } = {}) {
     return null;
   }
 
-  const guion = await escribirGuion({ ...nota, titulo: nota.titular });
-  const locucion = await locutar(guion.libreto, `${base}.mp3`, { voz });
+  /*
+   * Rehacer la maqueta no compra audio nuevo.
+   *
+   * Cambiar una tipografía no cambia cómo suena la voz, pero el rehacedor
+   * volvía a pedir guion y locución en cada pasada. Cinco pasadas de maqueta en
+   * un día sobre dieciséis notas se comieron los 10.034 créditos del plan de
+   * ElevenLabs, y la sexta murió a mitad de camino con seis créditos en la
+   * cuenta. Con el guion y los timestamps guardados, una pasada de diseño no
+   * cuesta nada.
+   */
+  const { guardar, recuperar } = await import('./locucion-guardada.mjs');
+  const guardada = await recuperar(nota.slug, { voz });
+
+  let guion;
+  let locucion;
+  if (guardada) {
+    ({ guion, locucion } = guardada);
+    console.log('  reuso la locución guardada, no gasto voz');
+  } else {
+    guion = await escribirGuion({ ...nota, titulo: nota.titular });
+    locucion = await locutar(guion.libreto, `${base}.mp3`, { voz });
+    await guardar(nota.slug, { guion, voz, locucion });
+  }
 
   const extras = await fotosDeCoberturas(nota.fuentes, base, bajarImagen, { evitar: [nota.imagen_url] });
   console.log(`  ${extras.length + 1} fotos · locución de ${locucion.duracion.toFixed(0)}s`);
