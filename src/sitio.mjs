@@ -102,6 +102,38 @@ export async function notaDelHecho(notaOClave) {
 }
 
 /**
+ * Descarta los grupos cuyo hecho ya se publicó, en UNA sola consulta.
+ *
+ * Va antes de redactar, no después. El orden importa y mucho: redactar una nota
+ * cuesta una llamada al modelo, y el cron pedía cuatro por corrida para después
+ * tirar las que ya estaban. Con la agenda tranquila las tiraba todas, así que
+ * corría veinticuatro veces por día, gastaba saldo cada vez y publicaba cuatro
+ * notas. Así se agotó el crédito dos veces en una semana.
+ */
+export async function sinPublicar(grupos) {
+  const urlsDe = (g) => (g.noticias ?? [])
+    .map((n) => String(n.url ?? '').split('?')[0].slice(0, 400))
+    .filter(Boolean);
+
+  const todas = [...new Set(grupos.flatMap(urlsDe))];
+  if (!todas.length) return grupos;
+
+  const vistas = new Set();
+  // De a veinte: las URLs viajan en la query string y de a cien la línea de
+  // request pasa el límite de encabezados.
+  for (let i = 0; i < todas.length; i += 20) {
+    const lista = todas.slice(i, i + 20).map((u) => `"${u.replace(/"/g, '')}"`).join(',');
+    const filas = await pedir(
+      `hechos_vistos?select=clave&clave=in.(${encodeURIComponent(lista)})`,
+      { headers: cabeceras() },
+    );
+    for (const f of filas ?? []) vistas.add(f.clave);
+  }
+
+  return grupos.filter((g) => !urlsDe(g).some((u) => vistas.has(u)));
+}
+
+/**
  * Escribe la nota con sus fuentes. Si el slug ya existe le agrega un sufijo:
  * dos hechos distintos pueden generar el mismo titular acortado.
  */

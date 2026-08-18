@@ -115,8 +115,9 @@ async function producirEstaticas(nota, publicada, fondo, generada) {
 export async function correr({ lote = 1, voz = 'langa', soloNota = false } = {}) {
   const { producir } = await import('./redactar.mjs');
 
-  // Se piden más grupos que piezas: algunos se descartan por ya publicados.
-  const { notas, totalItems, totalGrupos } = await producir({ cantidad: lote + 3, minMedios: 2 });
+  // Ya no hace falta pedir de más como colchón: producir() descarta los hechos
+  // publicados ANTES de redactarlos, así que lo que devuelve ya es material nuevo.
+  const { notas, totalItems, totalGrupos } = await producir({ cantidad: lote, minMedios: 2 });
   console.log(`${totalItems} noticias, ${totalGrupos} hechos, ${notas.length} redactadas\n`);
 
   const hechas = [];

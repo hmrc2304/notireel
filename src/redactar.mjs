@@ -243,8 +243,14 @@ export async function producir({ cantidad = 3, horas = 24, minMedios = 1 } = {})
   const grupos = await agrupar(items);
   const ranking = rankear(grupos).filter((g) => g.cantidadMedios >= minMedios);
 
+  // Los ya publicados se descartan ANTES de redactar: cada nota es una llamada
+  // al modelo y no tiene sentido pagarla para después tirarla.
+  const { sinPublicar } = await import('./sitio.mjs');
+  const nuevos = await sinPublicar(ranking.slice(0, cantidad * 4));
+  console.log(`  ${ranking.length} hechos, ${nuevos.length} sin publicar`);
+
   const notas = [];
-  for (const g of ranking.slice(0, cantidad)) {
+  for (const g of nuevos.slice(0, cantidad)) {
     try {
       notas.push(await redactarNota(g));
     } catch (e) {
