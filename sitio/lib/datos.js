@@ -83,3 +83,16 @@ export const ETIQUETA_CERTEZA = {
   en_desarrollo: { texto: 'En desarrollo', detalle: 'Los datos todavía cambian' },
   version_unica: { texto: 'Una sola fuente', detalle: 'Lo reporta un solo medio' },
 };
+
+/**
+ * Cuánto lleva leer la nota, redondeado al minuto.
+ *
+ * 200 palabras por minuto es el ritmo que usan los medios para este dato en
+ * español. Se muestra porque el lector llega desde un video de treinta segundos
+ * y decide en el acto si entra o no: saber que son dos minutos y no diez es
+ * parte de esa decisión.
+ */
+export function minutosDeLectura(cuerpo = '') {
+  const palabras = String(cuerpo).trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(palabras / 200));
+}

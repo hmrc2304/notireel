@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { porSlug, relacionadas, fechaLarga, haceCuanto, ETIQUETA_CERTEZA } from '../../../lib/datos';
+import { porSlug, relacionadas, fechaLarga, haceCuanto, minutosDeLectura, ETIQUETA_CERTEZA } from '../../../lib/datos';
 
 export const revalidate = 600;
 
@@ -69,6 +69,7 @@ export default async function Nota({ params }) {
           <span className={`sello s-${nota.certeza}`} title={certeza.detalle}>{certeza.texto}</span>
           {nota.medios_count > 1 && <span className="cuantos-medios">{nota.medios_count} fuentes</span>}
           <span className="fecha">{fechaLarga(nota.publicada_en)} · {haceCuanto(nota.publicada_en)}</span>
+          <span className="lectura">{minutosDeLectura(nota.cuerpo)} min de lectura</span>
         </div>
 
         <h1>{nota.titular}</h1>
