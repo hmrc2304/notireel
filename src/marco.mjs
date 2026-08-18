@@ -66,9 +66,9 @@ function navegador() {
 const FORMATOS = {
   vertical: {
     ancho: 1080, alto: 1920,
-    piso: 900, costura: 1120, techo: 340,
+    piso: 960, costura: 1060, techo: 340,
     logoTop: 122, logoLeft: 52, logoFuente: 40, lemaFuente: 25,
-    acentoTop: 1268, acentoAncho: 78,
+    acentoTop: 1208, acentoAncho: 78,
     firmaLeft: 60, firmaBottom: 132, pieFuente: 33, pieChica: 24,
   },
   horizontal: {

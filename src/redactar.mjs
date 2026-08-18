@@ -53,7 +53,7 @@ const HERRAMIENTA = {
     type: 'object',
     properties: {
       titular: { type: 'string', description: 'titular propio en español, concreto, sin signos de exclamación ni mayúsculas sostenidas' },
-      bajada: { type: 'string', description: 'una o dos frases que amplían el titular, hasta 200 caracteres' },
+      bajada: { type: 'string', description: 'una o dos frases que amplían el titular, MÁXIMO 130 caracteres contando espacios' },
       // Párrafos, no un texto suelto: un presupuesto global de palabras es algo
       // que el modelo no puede verificar mientras escribe, y se va largo. Un
       // tope por párrafo sí lo sostiene, porque el límite reaparece en cada uno.

@@ -39,12 +39,11 @@ import { DIRS } from './config.mjs';
  * apilan hacia arriba desde el piso. La franja siempre queda llena.
  */
 /*
- * `pisoY` sale de medir el marco, no de tantear.
+ * `pieY` sale de medir el marco, no de tantear.
  *
- * El pie con el dominio está pintado en el PNG del marco: en el vertical arranca
- * en 1724 y en el horizontal en 955. Antes el piso estaba puesto a ojo y la
- * última línea de la bajada del 16:9 se montaba encima del pie. Ahora sale de
- * medir el PNG y deja el cuerpo de esa línea más un respiro.
+ * Es donde arranca el pie con el dominio pintado en el PNG: 1724 en el vertical
+ * y 955 en el horizontal. El piso del bloque se calcula restándole el cuerpo de
+ * la última línea más un respiro, así que agrandar la letra no lo monta encima.
  *
  * `subY` son cuatro quintos del espacio libre de la foto, no del cuadro entero:
  * en el 16:9 el texto arranca en 690, así que cuatro quintos de 1080 caerían
@@ -54,21 +53,19 @@ const GEOMETRIA = {
   vertical: {
     ancho: 1080, alto: 1920,
     margen: 62,
-    // El bloque baja hasta 24px antes del pie de la marca, que arranca en 1724.
-    techoY: 1300, pisoY: 1700,
-    tituloMin: 62, tituloMax: 118, tituloLineas: 2, tituloInter: 0.82,
-    bajadaFuente: 41, bajadaMin: 33, bajadaLineas: 4, bajadaInter: 50, bajadaAire: 40,
-    subY: 1000, subFuente: 78,
+    techoY: 1240, pieY: 1724, respiro: 26,
+    tituloMin: 74, tituloMax: 132, tituloLineas: 2, tituloInter: 0.80,
+    bajadaFuente: 47, bajadaMin: 40, bajadaLineas: 3, bajadaInter: 57, bajadaAire: 36,
+    subY: 952, subFuente: 88,
     chipX: 1020, chipY: 142, selloX: 52, selloY: 218,
   },
   horizontal: {
     ancho: 1920, alto: 1080,
     margen: 62,
-    // El pie del marco horizontal arranca en 955.
-    techoY: 690, pisoY: 926,
-    tituloMin: 46, tituloMax: 86, tituloLineas: 2, tituloInter: 0.82,
-    bajadaFuente: 33, bajadaMin: 27, bajadaLineas: 3, bajadaInter: 46, bajadaAire: 38,
-    subY: 552, subFuente: 60,
+    techoY: 690, pieY: 955, respiro: 22,
+    tituloMin: 54, tituloMax: 96, tituloLineas: 2, tituloInter: 0.80,
+    bajadaFuente: 38, bajadaMin: 32, bajadaLineas: 3, bajadaInter: 48, bajadaAire: 34,
+    subY: 552, subFuente: 68,
     chipX: 1860, chipY: 80, selloX: 56, selloY: 152,
   },
 };
@@ -365,7 +362,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
    * sin importar si el titular es corto o largo.
    */
   const anchoUtil = g.ancho - g.margen * 2;
-  const altoFranja = g.pisoY - g.techoY;
+  const altoFranja = g.pieY - g.respiro - g.bajadaFuente - g.techoY;
 
   /*
    * El bloque tiene que entrar en la franja, no solamente verse bien.
@@ -421,9 +418,19 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
   const { titulo, interTitulo, altoTitulo, cuerpoBajada, interBajada, altoBajada } = bloque;
   const lineasBajada = cuerpoBajada.lineas;
 
+  /*
+   * El piso se calcula con el cuerpo que quedó, no con uno fijo.
+   *
+   * Con `y` en `an7` la coordenada es el TOPE del renglón, así que la última
+   * línea ocupa hasta `piso + cuerpo`. Con un piso fijo calculado para cuerpo 41,
+   * agrandar la bajada a 47 metió esos seis píxeles de más encima del pie. Ahora
+   * el piso sale de dónde arranca el pie menos el cuerpo real y el respiro.
+   */
+  const piso = g.pieY - (lineasBajada.length ? cuerpoBajada.tamano : titulo.tamano) - g.respiro;
+
   // Si el bloque no entra en la franja, se apoya en el techo y baja: prefiero que
   // muerda el borde de la foto antes que pisar el pie de la marca.
-  const arranque = Math.max(g.techoY, g.pisoY - altoTitulo - altoBajada);
+  const arranque = Math.max(g.techoY, piso - altoTitulo - altoBajada);
 
   filas.push(...bloqueDeTexto({
     lineas: titulo.lineas,

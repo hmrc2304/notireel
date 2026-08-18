@@ -43,8 +43,10 @@ export const COLA = 1.1;         // segundos de aire al final para que no corte 
  *      llenar el ancho; el bloque de texto se achica hasta entrar en la franja;
  *      sin el aviso de imagen generada
  *   9  la locucion baja a cuatro quintos de la foto
+ *  10  todo el texto mas grande: la foto cede 60px de alto, la bajada baja a
+ *      tres renglones y el piso del bloque se calcula con el cuerpo real
  */
-export const VERSION_RENDER = 9;
+export const VERSION_RENDER = 10;
 
 /**
  * Los dos formatos que se producen de cada noticia.
@@ -58,7 +60,7 @@ export const VERSION_RENDER = 9;
  * así que `altoFoto` es el alto entero.
  */
 const FORMATOS = {
-  vertical: { ancho: 1080, alto: 1920, altoFoto: 1250 },
+  vertical: { ancho: 1080, alto: 1920, altoFoto: 1190 },
   horizontal: { ancho: 1920, alto: 1080, altoFoto: 1080 },
 };
 
