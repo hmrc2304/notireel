@@ -33,8 +33,9 @@ const COLA = 1.1;         // segundos de aire al final para que no corte seco
  *   2  sin presentador, subtítulos de a una o dos palabras dentro de la foto
  *   3  titular y subtítulo alineados a la izquierda, en la franja de abajo
  *   4  titular grande con la bajada de la nota debajo; la locución, al medio
+ *   5  interlineado propio, titular balanceado sin palabras huérfanas
  */
-export const VERSION_RENDER = 4;
+export const VERSION_RENDER = 5;
 
 /**
  * Los dos formatos que se producen de cada noticia.
@@ -54,10 +55,40 @@ const FORMATOS = {
 
 const rel = (p) => path.relative(DIRS.raiz, p).replace(/\\/g, '/');
 
+/**
+ * Cabeceras de navegador de verdad.
+ *
+ * Con un user-agent propio, varios medios devuelven 400 o 403: sus defensas
+ * tratan cualquier cliente que no parezca un navegador como un raspador. El
+ * efecto era silencioso y caro: la nota se publicaba sin foto, y sin foto
+ * tampoco salen el video ni el carrusel.
+ *
+ * El `referer` del propio dominio importa tanto como el user-agent: muchos
+ * servidores solo entregan la imagen si viene de una página suya.
+ */
+function cabecerasDeNavegador(url) {
+  let origen = '';
+  try { origen = new URL(url).origin; } catch { /* url rara, se manda sin referer */ }
+
+  return {
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+      + '(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+    accept: 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+    'accept-language': 'es-ES,es;q=0.9,en;q=0.8',
+    ...(origen ? { referer: `${origen}/` } : {}),
+  };
+}
+
 export async function bajarImagen(url, destino) {
-  const res = await fetch(url, { headers: { 'user-agent': 'notiviral-motor/1.0' } });
+  const res = await fetch(url, { headers: cabecerasDeNavegador(url), redirect: 'follow' });
   if (!res.ok) throw new Error(`imagen ${res.status}`);
-  fs.writeFileSync(destino, Buffer.from(await res.arrayBuffer()));
+
+  const bytes = Buffer.from(await res.arrayBuffer());
+  // Un servidor que responde 200 con una página de error deja un archivo que no
+  // es una imagen, y el fallo recién aparece al componer el video.
+  if (bytes.length < 1024) throw new Error(`imagen vacía (${bytes.length} bytes)`);
+
+  fs.writeFileSync(destino, bytes);
   return destino;
 }
 

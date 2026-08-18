@@ -43,16 +43,16 @@ const GEOMETRIA = {
   vertical: {
     ancho: 1080, alto: 1920,
     margen: 62,
-    tituloY: 1296, tituloFuente: 104, tituloChars: 21,
-    bajadaY: 1566, bajadaFuente: 44, bajadaChars: 42, bajadaLineas: 3,
+    tituloY: 1300, tituloFuente: 100, tituloChars: 20, tituloInter: 92,
+    bajadaY: 1560, bajadaFuente: 43, bajadaChars: 44, bajadaLineas: 3, bajadaInter: 54,
     subY: 860, subFuente: 76, maxChars: 22,
     chipX: 1020, chipY: 74, selloX: 52, selloY: 150,
   },
   horizontal: {
     ancho: 1920, alto: 1080,
     margen: 62,
-    tituloY: 690, tituloFuente: 78, tituloChars: 30,
-    bajadaY: 892, bajadaFuente: 36, bajadaChars: 66, bajadaLineas: 2,
+    tituloY: 686, tituloFuente: 74, tituloChars: 30, tituloInter: 70,
+    bajadaY: 890, bajadaFuente: 35, bajadaChars: 66, bajadaLineas: 2, bajadaInter: 44,
     subY: 420, subFuente: 58, maxChars: 30,
     chipX: 1860, chipY: 54, selloX: 56, selloY: 126,
   },
@@ -145,21 +145,73 @@ function escapar(s) {
  * El ASS va con WrapStyle 2, que NO envuelve solo: lo que no entra se sale del
  * cuadro por el costado. Los saltos se calculan acá o no existen.
  */
-function partirEnLineas(texto, maxChars, maxLineas = 3) {
+function partirEnLineas(texto, maxChars, maxLineas = 3, { balancear = false } = {}) {
   const palabras = String(texto).trim().split(/\s+/).filter(Boolean);
-  const lineas = [];
-  let actual = '';
+  if (!palabras.length) return [];
 
-  for (const p of palabras) {
-    if (!actual) { actual = p; continue; }
-    if (`${actual} ${p}`.length <= maxChars) { actual += ` ${p}`; continue; }
-    if (lineas.length + 1 >= maxLineas) { lineas.push(actual); actual = p; break; }
-    lineas.push(actual);
-    actual = p;
+  /** Reparte llenando cada línea hasta `ancho`, sin cortar palabras. */
+  const repartir = (ancho) => {
+    const lineas = [];
+    let actual = '';
+    let i = 0;
+
+    for (; i < palabras.length; i++) {
+      const p = palabras[i];
+      if (!actual) { actual = p; continue; }
+      if (`${actual} ${p}`.length <= ancho) { actual += ` ${p}`; continue; }
+      lineas.push(actual);
+      actual = p;
+      if (lineas.length === maxLineas) return { lineas, sobra: true };
+    }
+    if (actual) lineas.push(actual);
+    return { lineas, sobra: false };
+  };
+
+  let { lineas, sobra } = repartir(maxChars);
+
+  /**
+   * Balancear sin agregar renglones.
+   *
+   * Repartir directamente por el promedio deja una palabra sola colgando: en un
+   * titular de veinticuatro caracteres a veinte de ancho, el promedio da doce y
+   * ninguna de las dos primeras palabras entra junta, así que aparece una tercera
+   * línea con una sola palabra. Se prueba desde el promedio hacia arriba y se usa
+   * el primer ancho que siga entrando en la misma cantidad de renglones.
+   */
+  if (balancear && lineas.length > 1) {
+    const objetivo = lineas.length;
+    const largo = palabras.join(' ').length;
+    for (let ancho = Math.ceil(largo / objetivo); ancho <= maxChars; ancho++) {
+      const prueba = repartir(ancho);
+      if (!prueba.sobra && prueba.lineas.length === objetivo) { lineas = prueba.lineas; break; }
+    }
   }
-  if (actual && lineas.length < maxLineas) lineas.push(actual);
 
-  return lineas.map(escapar).join('\\N');
+  // Lo que no entró se marca con puntos suspensivos: cortar en seco se lee como
+  // que el texto está roto.
+  if (sobra && lineas.length) {
+    const ultima = lineas[lineas.length - 1];
+    lineas[lineas.length - 1] = ultima.length + 1 <= maxChars
+      ? `${ultima}…`
+      : `${ultima.slice(0, maxChars - 1).replace(/\s+\S*$/, '')}…`;
+  }
+
+  return lineas;
+}
+
+/**
+ * Dibuja un texto de varias líneas, una por evento.
+ *
+ * El salto `\N` de ASS separa los renglones con el interlineado del propio
+ * formato, que para una tipografía condensada como Anton deja un hueco enorme y
+ * el titular se lee como dos frases sueltas. Con un evento por línea, la
+ * separación es exactamente la que se pide.
+ */
+function bloqueDeTexto({ lineas, estilo, x, y, interlineado, fin, capa = 2, fade = 240 }) {
+  return lineas.map((linea, i) => (
+    `Dialogue: ${capa},0:00:00.00,${fin},${estilo},,0,0,0,,` +
+    `{\\pos(${x},${Math.round(y + i * interlineado)})\\an7\\fad(${fade},0)}${escapar(linea)}`
+  ));
 }
 
 /** Mismo código de color que el sitio: teal lo verificado, ladrillo lo que se mueve. */
@@ -227,18 +279,18 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
   // Titular: grande, fijo, alineado a la izquierda desde el margen. Es lo que se
   // lee sin sonido y lo que decide si alguien se queda.
-  filas.push(
-    `Dialogue: 2,0:00:00.00,${fin},Titulo,,0,0,0,,{\\pos(${g.margen},${g.tituloY})\\an7\\fad(240,0)}` +
-    partirEnLineas(hook, g.tituloChars, 3),
-  );
+  filas.push(...bloqueDeTexto({
+    lineas: partirEnLineas(hook, g.tituloChars, 3, { balancear: true }),
+    estilo: 'Titulo', x: g.margen, y: g.tituloY, interlineado: g.tituloInter, fin,
+  }));
 
   // La bajada de la NOTA, debajo del titular. Es texto fijo que amplía el titular,
   // no tiene nada que ver con los subtítulos de la locución.
   if (bajada) {
-    filas.push(
-      `Dialogue: 2,0:00:00.00,${fin},Bajada,,0,0,0,,{\\pos(${g.margen},${g.bajadaY})\\an7\\fad(420,0)}` +
-      partirEnLineas(bajada, g.bajadaChars, g.bajadaLineas),
-    );
+    filas.push(...bloqueDeTexto({
+      lineas: partirEnLineas(bajada, g.bajadaChars, g.bajadaLineas),
+      estilo: 'Bajada', x: g.margen, y: g.bajadaY, interlineado: g.bajadaInter, fin, fade: 420,
+    }));
   }
 
   // Cuando el fondo no es una foto del hecho sino una imagen generada, se dice.

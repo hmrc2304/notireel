@@ -571,6 +571,7 @@ img { max-width: 100%; display: block; }
 
 /* El scroll lo hace el navegador con snap; animarlo a mano se siente pesado. */
 .feed {
+  --barra-reel: 62px;
   position: fixed;
   inset: 0;
   overflow-y: scroll;
@@ -582,9 +583,17 @@ img { max-width: 100%; display: block; }
 }
 .feed::-webkit-scrollbar { display: none; }
 
+/**
+ * El reel ocupa la pantalla menos la barra del botón.
+ *
+ * Con el botón flotando encima del video, siempre terminaba apoyado sobre el pie
+ * del propio video, que es donde va el dominio. Moverlo de lado no alcanzó: en
+ * pantallas donde el video llena el alto, cualquier posición pisa algo. La única
+ * forma de que no tape nada es que el video no llegue hasta ahí.
+ */
 .reel {
   position: relative;
-  height: 100dvh;
+  height: calc(100dvh - var(--barra-reel));
   scroll-snap-align: start;
   scroll-snap-stop: always;
   display: flex;
@@ -618,18 +627,17 @@ img { max-width: 100%; display: block; }
  * suficiente como para apoyarse sobre el cuadro y tapaba el pie del propio
  * video, que es donde va el dominio.
  */
+/* La barra vive DEBAJO del video, no encima: su alto es el que se le descuenta
+   al reel, así que nunca se superponen. */
 .reel-datos {
-  z-index: 3;
   position: absolute;
-  left: 0; right: 0; bottom: 0;
-  padding: 0 18px calc(14px + env(safe-area-inset-bottom));
-  /* A la DERECHA: el pie del propio video (el dominio y la bajada de marca) vive
-     en el borde izquierdo, y un botón centrado se le apoyaba justo encima. */
-  display: flex; justify-content: flex-end;
-  color: #fff;
-  pointer-events: none;
+  left: 0; right: 0;
+  top: 100%;
+  height: var(--barra-reel);
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 18px calc(env(safe-area-inset-bottom) / 2);
+  background: #000;
 }
-.reel-datos > * { pointer-events: auto; }
 
 .reel-sellos { display: flex; align-items: center; gap: 14px; }
 .reel-fuentes {
