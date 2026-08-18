@@ -401,7 +401,18 @@ img { max-width: 100%; display: block; }
   border-bottom: 2px solid var(--tinta);
 }
 
-.tarjeta { display: flex; flex-direction: column; }
+/* La fila del pie se apoya abajo: si a una tarjeta le falta la foto, su texto
+   sube pero las fuentes y la hora siguen alineadas con las de al lado. */
+.tarjeta { display: flex; flex-direction: column; height: 100%; }
+.tarjeta .meta-linea.apretada { margin-top: auto; padding-top: 11px; }
+
+/* Sin foto, la tarjeta reserva su lugar en vez de encogerse y desarmar la fila. */
+.tarjeta .hueco-foto {
+  aspect-ratio: 16 / 10;
+  margin-top: 11px;
+  background: var(--papel-2);
+  border: 1px dashed var(--linea);
+}
 .tarjeta .marco {
   position: relative;
   aspect-ratio: 16 / 10;

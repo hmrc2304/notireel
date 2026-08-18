@@ -165,6 +165,44 @@ function recortarMitad(origen, recorte, destino) {
 }
 
 /**
+ * Saca la foto de portada de un artículo, leyendo su HTML.
+ *
+ * Muchos feeds RSS no traen imagen, o traen una miniatura inservible, pero la
+ * nota del medio siempre tiene su `og:image`: es la que usan Facebook y WhatsApp
+ * para la previsualización, así que está pensada para verse grande.
+ *
+ * Es el plan intermedio entre la imagen del feed y generar una con IA: una foto
+ * real del hecho vale más que cualquier recreación, y encima no cuesta nada.
+ */
+export async function imagenDeArticulo(url) {
+  const cabeceras = {
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+      + '(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+    accept: 'text/html,application/xhtml+xml',
+    'accept-language': 'es-ES,es;q=0.9,en;q=0.8',
+  };
+
+  const res = await fetch(url, { headers: cabeceras, redirect: 'follow' });
+  if (!res.ok) throw new Error(`artículo ${res.status}`);
+
+  // Solo el principio: las etiquetas de previsualización viven en el <head> y
+  // bajar el artículo entero por una URL es tirar ancho de banda.
+  const html = (await res.text()).slice(0, 60000);
+
+  const buscar = (re) => re.exec(html)?.[1];
+  const cruda =
+    buscar(/<meta[^>]+property=["']og:image:secure_url["'][^>]+content=["']([^"']+)/i) ??
+    buscar(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)/i) ??
+    buscar(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i) ??
+    buscar(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)/i);
+
+  if (!cruda) throw new Error('el artículo no declara imagen');
+
+  // Las rutas relativas son válidas en og:image y hay medios que las usan.
+  return new URL(cruda.replace(/&amp;/g, '&'), url).href;
+}
+
+/**
  * Baja las imágenes de las otras coberturas del mismo hecho.
  *
  * Son el material para que el video no se quede treinta segundos sobre una única
@@ -210,14 +248,39 @@ export async function fotosDeCoberturas(coberturas, rutaBase, descargar, { tope 
 export async function fondoParaNota(nota, rutaBase, descargar) {
   const original = `${rutaBase}.jpg`;
 
-  // Varios medios responden 401 o 403 a la descarga directa de sus imágenes.
-  // Sin este plan B la nota queda sin foto y, por lo tanto, sin ninguna pieza.
-  try {
-    await descargar(nota.imagen, original);
-  } catch (e) {
-    console.log(`  imagen inaccesible (${e.message}), genero una propia`);
+  /**
+   * Tres intentos antes de inventar una foto, del más barato al más caro:
+   * la imagen del feed, la portada que el artículo declara para compartir, y
+   * recién entonces una generada.
+   *
+   * El del artículo se agregó porque la nota quedaba sin foto por cosas que no
+   * eran "no hay foto": el feed no traía ninguna, o el medio rechazaba la
+   * descarga. Y sin foto tampoco salen el video ni el carrusel.
+   */
+  const candidatas = [
+    nota.imagen,
+    ...(nota.fuentes ?? []).slice(0, 4).map((f) => f.url),
+  ].filter(Boolean);
+
+  let bajada = false;
+  for (const [i, candidata] of candidatas.entries()) {
+    try {
+      // La primera es una imagen directa; las demás son artículos de los que hay
+      // que sacar la portada declarada.
+      const url = i === 0 ? candidata : await imagenDeArticulo(candidata);
+      await descargar(url, original);
+      bajada = true;
+      if (i > 0) console.log(`  foto tomada del artículo de ${(nota.fuentes ?? [])[i - 1]?.medio ?? 'una fuente'}`);
+      break;
+    } catch {
+      // Se prueba la siguiente; el motivo del fallo se informa recién si no queda ninguna.
+    }
+  }
+
+  if (!bajada) {
+    console.log('  ninguna fuente dio una foto accesible, genero una propia');
     const propia = await generarPortada(nota, `${rutaBase}-propia.png`);
-    return { ruta: propia, generada: true, veredicto: { tipo: 'inaccesible', usable: false, motivo: e.message } };
+    return { ruta: propia, generada: true, veredicto: { tipo: 'inaccesible', usable: false, motivo: 'sin foto accesible' } };
   }
 
   // Primero el filtro barato: muchos feeds RSS entregan un thumbnail chico que

@@ -34,8 +34,12 @@ function Fuentes({ n }) {
  * La foto, con el triángulo de reproducción cuando hay video.
  * `prioridad` carga sin esperar: es la única imagen que el lector ve de entrada.
  */
-function Foto({ nota, prioridad = false, proporcion }) {
-  if (!nota.imagen_url) return null;
+function Foto({ nota, prioridad = false, proporcion, hueco = false }) {
+  // Sin foto, la tarjeta deja el lugar reservado: si se encoge, desalinea toda la
+  // fila de la grilla y el pie de una tarjeta queda a media altura de la de al lado.
+  if (!nota.imagen_url) {
+    return hueco ? <div className="hueco-foto" style={proporcion ? { aspectRatio: proporcion } : undefined} /> : null;
+  }
   return (
     <div className="marco" style={proporcion ? { aspectRatio: proporcion } : undefined}>
       <img
@@ -206,7 +210,7 @@ export default async function Portada() {
                 <Fuentes n={n.medios_count} />
               </div>
               <h3>{n.titular}</h3>
-              <Foto nota={n} proporcion="16 / 10" />
+              <Foto nota={n} proporcion="16 / 10" hueco />
             </a>
             <p>{n.bajada}</p>
             <div className="meta-linea apretada">
