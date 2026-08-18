@@ -79,6 +79,25 @@ function cabecerasDeNavegador(url) {
   };
 }
 
+/**
+ * Qué formato es de verdad, mirando los primeros bytes.
+ *
+ * La extensión no dice nada: los medios sirven WebP y AVIF desde URLs que
+ * terminan en .jpg, y un servidor caído devuelve HTML con 200. Confiar en el
+ * nombre costó una pieza entera: la nota se publicó, el control de imagen
+ * rebotó con "image/jpeg not supported" y ffmpeg murió al componer, con la nota
+ * ya arriba y sin video.
+ */
+function formatoReal(b) {
+  if (b.length < 12) return null;
+  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return 'jpeg';
+  if (b[0] === 0x89 && b.toString('latin1', 1, 4) === 'PNG') return 'png';
+  if (b.toString('latin1', 0, 4) === 'RIFF' && b.toString('latin1', 8, 12) === 'WEBP') return 'webp';
+  if (b.toString('latin1', 4, 8) === 'ftyp') return 'avif';   // también HEIC
+  if (b.toString('latin1', 0, 3) === 'GIF') return 'gif';
+  return null;
+}
+
 export async function bajarImagen(url, destino) {
   const res = await fetch(url, { headers: cabecerasDeNavegador(url), redirect: 'follow' });
   if (!res.ok) throw new Error(`imagen ${res.status}`);
@@ -88,7 +107,25 @@ export async function bajarImagen(url, destino) {
   // es una imagen, y el fallo recién aparece al componer el video.
   if (bytes.length < 1024) throw new Error(`imagen vacía (${bytes.length} bytes)`);
 
-  fs.writeFileSync(destino, bytes);
+  const formato = formatoReal(bytes);
+  if (!formato) throw new Error('lo que bajó no es una imagen');
+
+  // Todo lo que no sea JPEG o PNG se convierte acá y no más adelante: así lo que
+  // queda en disco es siempre algo que ffmpeg abre y que la API de visión acepta.
+  if (formato === 'jpeg' || formato === 'png') {
+    fs.writeFileSync(destino, bytes);
+    return destino;
+  }
+
+  const crudo = `${destino}.${formato}`;
+  fs.writeFileSync(crudo, bytes);
+  try {
+    execFileSync('ffmpeg', ['-y', '-hide_banner', '-loglevel', 'error', '-i', crudo, '-frames:v', '1', '-q:v', '3', destino]);
+  } catch {
+    throw new Error(`no pude convertir un ${formato}`);
+  } finally {
+    fs.rmSync(crudo, { force: true });
+  }
   return destino;
 }
 

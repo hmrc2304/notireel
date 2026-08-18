@@ -80,7 +80,13 @@ export function salirPorError(e, queHacia = 'la corrida') {
   if (esSinSaldo(e)) {
     console.error(`\n⚠ Sin saldo en la API: ${queHacia} no se hizo.`);
     console.error('  No es un problema del código. Hay que cargar crédito para que siga.');
-    return 0;
+
+    // El que corre cada hora sale con éxito para no mandar veinticuatro mails
+    // por el mismo problema. Pero salir siempre con éxito dejó el motor parado
+    // veintiuna horas pareciendo sano: diecisiete corridas seguidas en verde sin
+    // publicar nada. Los workflows que corren pocas veces al día llevan
+    // AVISAR_SIN_SALDO=1 y sí fallan, que es el único aviso que llega solo.
+    return env('AVISAR_SIN_SALDO', false) === '1' ? 1 : 0;
   }
   console.error(`\n✖ Falló ${queHacia}: ${e?.message ?? e}`);
   if (e?.stack) console.error(e.stack.split('\n').slice(1, 4).join('\n'));

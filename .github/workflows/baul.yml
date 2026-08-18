@@ -37,6 +37,10 @@ jobs:
 
       - name: Llenar el baúl
         env:
+          # Este corre tres veces al día, así que puede permitirse fallar cuando
+          # no hay saldo: son tres avisos, no veinticuatro. El de publicar sale
+          # con éxito para no inundar el mail, y por eso no sirve como alarma.
+          AVISAR_SIN_SALDO: '1'
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           SUPABASE_NOTIREEL_URL: ${{ secrets.SUPABASE_NOTIREEL_URL }}
           SUPABASE_NOTIREEL_SERVICE_KEY: ${{ secrets.SUPABASE_NOTIREEL_SERVICE_KEY }}
