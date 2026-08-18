@@ -34,8 +34,11 @@ export const COLA = 1.1;         // segundos de aire al final para que no corte 
  *   3  titular y subtítulo alineados a la izquierda, en la franja de abajo
  *   4  titular grande con la bajada de la nota debajo; la locución, al medio
  *   5  interlineado propio, titular balanceado sin palabras huérfanas
+ *   6  renglones medidos con la fuente real y justificados al margen; el cuerpo
+ *      del titular se calcula para llenar la franja; la bajada entra entera, sin
+ *      puntos suspensivos; la locución va de a una palabra con cuerpo fijo
  */
-export const VERSION_RENDER = 5;
+export const VERSION_RENDER = 6;
 
 /**
  * Los dos formatos que se producen de cada noticia.

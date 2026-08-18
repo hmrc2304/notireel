@@ -111,20 +111,28 @@ export default function Feed({ notas }) {
           data-indice={i}
           ref={(el) => { refs.current[i] = el; }}
         >
-          {/* Todo el cuadro lleva a la nota: el botón queda como refuerzo visual,
-              no como la única forma de entrar. */}
-          <a href={`/nota/${n.slug}`} className="reel-tapa" aria-label={n.titular} />
+          {/*
+            El cuadro y la barra son hermanos en una columna, no capas sueltas.
+            Antes la barra iba posicionada en `top: 100%` dentro del cuadro, que
+            recorta lo que se sale: el botón quedaba fuera del área visible y no
+            se veía en ninguna pantalla.
+          */}
+          <div className="reel-cuadro">
+            {/* Todo el cuadro lleva a la nota: el botón queda como refuerzo
+                visual, no como la única forma de entrar. */}
+            <a href={`/nota/${n.slug}`} className="reel-tapa" aria-label={n.titular} />
 
-          <video
-            src={n.video_url}
-            poster={n.imagen_url ?? undefined}
-            muted
-            loop
-            playsInline
-            preload={i < 2 ? 'auto' : 'none'}
-          />
+            <video
+              src={n.video_url}
+              poster={n.imagen_url ?? undefined}
+              muted
+              loop
+              playsInline
+              preload={i < 2 ? 'auto' : 'none'}
+            />
 
-          <div className="reel-velo" />
+            <div className="reel-velo" />
+          </div>
 
           {/*
             Solo el botón. El video ya trae quemados el titular, la sección, el

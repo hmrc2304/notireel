@@ -611,18 +611,27 @@ img { max-width: 100%; display: block; }
 .feed::-webkit-scrollbar { display: none; }
 
 /**
- * El reel ocupa la pantalla menos la barra del botón.
+ * Cada reel es una columna: el cuadro arriba, la barra del boton abajo.
  *
- * Con el botón flotando encima del video, siempre terminaba apoyado sobre el pie
- * del propio video, que es donde va el dominio. Moverlo de lado no alcanzó: en
- * pantallas donde el video llena el alto, cualquier posición pisa algo. La única
- * forma de que no tape nada es que el video no llegue hasta ahí.
+ * Con el boton flotando encima del video siempre terminaba apoyado sobre el pie
+ * del propio video, que es donde va el dominio. La unica forma de que no tape
+ * nada es que el video no llegue hasta ahi, asi que el cuadro mide la pantalla
+ * menos la barra y los dos son hermanos, no capas superpuestas.
  */
 .reel {
-  position: relative;
-  height: calc(100dvh - var(--barra-reel));
+  height: 100dvh;
   scroll-snap-align: start;
   scroll-snap-stop: always;
+  display: flex;
+  flex-direction: column;
+}
+
+/* El cuadro se queda con todo el alto que la barra no usa. El recorte vive acá
+   y no en el reel: si estuviera afuera, dejaría la barra fuera de lo visible. */
+.reel-cuadro {
+  position: relative;
+  flex: 1;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -632,7 +641,7 @@ img { max-width: 100%; display: block; }
 /* Por encima del video pero por debajo del botón y del control de sonido. */
 .reel-tapa { position: absolute; inset: 0; z-index: 2; }
 
-.reel video {
+.reel-cuadro video {
   width: 100%;
   height: 100%;
   object-fit: contain;
@@ -646,21 +655,10 @@ img { max-width: 100%; display: block; }
   background: linear-gradient(to bottom, transparent 0%, transparent 74%, rgba(0,0,0,.72) 100%);
 }
 
-/**
- * El botón vive en el borde de abajo, lo más pegado posible.
- *
- * El video se muestra con `contain`, así que en la mayoría de los teléfonos deja
- * una franja negra arriba y abajo. Con el padding de antes el botón subía lo
- * suficiente como para apoyarse sobre el cuadro y tapaba el pie del propio
- * video, que es donde va el dominio.
- */
-/* La barra vive DEBAJO del video, no encima: su alto es el que se le descuenta
-   al reel, así que nunca se superponen. */
+/* La barra es el segundo tramo de la columna: ocupa su alto y nada más, así que
+   nunca puede pisar el video ni quedar recortada por él. */
 .reel-datos {
-  position: absolute;
-  left: 0; right: 0;
-  top: 100%;
-  height: var(--barra-reel);
+  flex: 0 0 var(--barra-reel);
   display: flex; align-items: center; justify-content: center;
   padding: 0 18px calc(env(safe-area-inset-bottom) / 2);
   background: #000;
