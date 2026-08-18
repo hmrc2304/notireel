@@ -32,8 +32,9 @@ const COLA = 1.1;         // segundos de aire al final para que no corte seco
  *   1  presentador con intro de 8 s, subtítulos de cuatro palabras abajo
  *   2  sin presentador, subtítulos de a una o dos palabras dentro de la foto
  *   3  titular y subtítulo alineados a la izquierda, en la franja de abajo
+ *   4  titular grande con la bajada de la nota debajo; la locución, al medio
  */
-export const VERSION_RENDER = 3;
+export const VERSION_RENDER = 4;
 
 /**
  * Los dos formatos que se producen de cada noticia.
@@ -187,6 +188,8 @@ export async function armarVideo({
 
   const comun = {
     hook: guion.hook,
+    // La bajada de la nota va al video como texto fijo debajo del titular.
+    bajada: nota.bajada ?? '',
     seccion: nota.seccion,
     palabras: locucion.palabras,
     duracion: locucion.duracion,

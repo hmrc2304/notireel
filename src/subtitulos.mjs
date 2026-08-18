@@ -27,23 +27,34 @@ const MAX_SEG = 2.2;
  * En 16:9 hay la mitad de alto y el doble de ancho: entran más caracteres por
  * línea y el texto tiene que ser más chico, o tapa la escena.
  */
+/**
+ * Tres textos, cada uno en su lugar:
+ *
+ *  - el TITULAR y la BAJADA de la nota van fijos en la franja de abajo, alineados
+ *    a la izquierda, uno debajo del otro. Son lo que se lee sin sonido y lo que
+ *    hay que poder leer de un vistazo mientras el pulgar decide.
+ *  - los SUBTÍTULOS de la locución van en el medio del cuadro, sobre la foto,
+ *    centrados y grandes, apareciendo al ritmo de la voz.
+ *
+ * Antes los subtítulos de la voz ocupaban el lugar de la bajada, que es de otra
+ * cosa: la franja de abajo es texto fijo, no karaoke.
+ */
 const GEOMETRIA = {
   vertical: {
     ancho: 1080, alto: 1920,
-    // Titular y subtítulo comparten la franja de abajo, los dos arrancando en el
-    // mismo margen izquierdo: se leen como el bloque de texto de una placa, en
-    // vez de flotar centrados con aire muerto entre medio.
     margen: 62,
-    hookY: 1298, subY: 1596, hookFuente: 88, subFuente: 64,
+    tituloY: 1296, tituloFuente: 104, tituloChars: 21,
+    bajadaY: 1566, bajadaFuente: 44, bajadaChars: 42, bajadaLineas: 3,
+    subY: 860, subFuente: 76, maxChars: 22,
     chipX: 1020, chipY: 74, selloX: 52, selloY: 150,
-    maxChars: 24,
   },
   horizontal: {
     ancho: 1920, alto: 1080,
-    margen: 58,
-    hookY: 686, subY: 906, hookFuente: 66, subFuente: 52,
+    margen: 62,
+    tituloY: 690, tituloFuente: 78, tituloChars: 30,
+    bajadaY: 892, bajadaFuente: 36, bajadaChars: 66, bajadaLineas: 2,
+    subY: 420, subFuente: 58, maxChars: 30,
     chipX: 1860, chipY: 54, selloX: 56, selloY: 126,
-    maxChars: 32,
   },
 };
 
@@ -128,19 +139,27 @@ function escapar(s) {
   return s.replace(/\\/g, '\\\\').replace(/\{/g, '\\{').replace(/\}/g, '\\}').replace(/\n/g, ' ');
 }
 
-/** Corta el hook en 2 líneas balanceadas, sin dejar una palabra sola. */
-function partirHook(hook) {
-  const palabras = hook.trim().split(/\s+/);
-  if (hook.length <= 18 || palabras.length < 3) return escapar(hook);
+/**
+ * Parte un texto en líneas que entren a lo ancho, sin cortar palabras.
+ *
+ * El ASS va con WrapStyle 2, que NO envuelve solo: lo que no entra se sale del
+ * cuadro por el costado. Los saltos se calculan acá o no existen.
+ */
+function partirEnLineas(texto, maxChars, maxLineas = 3) {
+  const palabras = String(texto).trim().split(/\s+/).filter(Boolean);
+  const lineas = [];
+  let actual = '';
 
-  let mejor = { corte: 1, dif: Infinity };
-  for (let i = 1; i < palabras.length; i++) {
-    const a = palabras.slice(0, i).join(' ').length;
-    const b = palabras.slice(i).join(' ').length;
-    const dif = Math.abs(a - b) + (palabras.slice(i).length === 1 ? 40 : 0);
-    if (dif < mejor.dif) mejor = { corte: i, dif };
+  for (const p of palabras) {
+    if (!actual) { actual = p; continue; }
+    if (`${actual} ${p}`.length <= maxChars) { actual += ` ${p}`; continue; }
+    if (lineas.length + 1 >= maxLineas) { lineas.push(actual); actual = p; break; }
+    lineas.push(actual);
+    actual = p;
   }
-  return escapar(palabras.slice(0, mejor.corte).join(' ')) + '\\N' + escapar(palabras.slice(mejor.corte).join(' '));
+  if (actual && lineas.length < maxLineas) lineas.push(actual);
+
+  return lineas.map(escapar).join('\\N');
 }
 
 /** Mismo código de color que el sitio: teal lo verificado, ladrillo lo que se mueve. */
@@ -151,7 +170,7 @@ const CERTEZA = {
 };
 
 export function construirASS({
-  hook, seccion, palabras, duracion,
+  hook, bajada = '', seccion, palabras, duracion,
   imagenGenerada = false, certeza = null, mediosCount = 0, formato = 'vertical',
 }) {
   const g = GEOMETRIA[formato] ?? GEOMETRIA.vertical;
@@ -168,8 +187,9 @@ YCbCr Matrix: TV.709
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Hook,Anton,${g.hookFuente},${color('#FFFFFF')},${color('#FFFFFF')},${color('#16233F')},${color('#000000', 120)},0,0,0,0,100,100,1,0,1,6,4,5,60,60,60,1
-Style: Sub,Montserrat,${g.subFuente},${color('#FFFFFF')},${color('#FFFFFF')},${color('#0B1220')},${color('#000000', 90)},1,0,0,0,100,100,0,0,1,5,3,5,60,60,60,1
+Style: Titulo,Anton,${g.tituloFuente},${color('#FFFFFF')},${color('#FFFFFF')},${color('#0A1020')},${color('#000000', 110)},0,0,0,0,100,100,1,0,1,5,3,7,0,0,0,1
+Style: Bajada,Montserrat,${g.bajadaFuente},${color('#CFDAE6')},${color('#CFDAE6')},${color('#0A1020')},${color('#000000', 140)},0,0,0,0,100,100,0,0,1,3,2,7,0,0,0,1
+Style: Sub,Montserrat,${g.subFuente},${color('#FFFFFF')},${color('#FFFFFF')},${color('#0B1220')},${color('#000000', 70)},1,0,0,0,100,100,0,0,1,6,4,5,60,60,60,1
 Style: Chip,Montserrat,36,${color('#FFFFFF')},${color('#FFFFFF')},${color('#0F1418')},${color('#000000', 255)},1,0,0,0,100,100,2,0,1,0,0,9,60,60,60,1
 Style: Aviso,Montserrat,27,${color('#E6ECF5')},${color('#E6ECF5')},${color('#0B0F12')},${color('#000000', 255)},0,0,0,0,100,100,0,0,1,3,0,3,60,60,60,1
 Style: Certeza,Montserrat,31,${color('#FFFFFF')},${color('#FFFFFF')},${color('#0F1418')},${color('#000000', 255)},1,0,0,0,100,100,1.4,0,1,0,0,7,60,60,60,1
@@ -181,13 +201,13 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
   const filas = [];
 
   // Chip de sección, arriba a la derecha, con la cápsula dibujada a mano.
-  const ancho = 30 + seccion.length * 20;
+  const anchoChip = 30 + seccion.length * 20;
   filas.push(
-    `Dialogue: 0,0:00:00.00,${fin},Chip,,0,0,0,,{\\pos(1020,74)\\an9\\p1\\c${color('#D81E2C')}\\bord0\\shad0}` +
-    `m 0 0 l ${ancho} 0 l ${ancho} 56 l 0 56{\\p0}`,
+    `Dialogue: 0,0:00:00.00,${fin},Chip,,0,0,0,,{\\pos(${g.chipX},${g.chipY})\\an9\\p1\\c${color('#D81E2C')}\\bord0\\shad0}` +
+    `m 0 0 l ${anchoChip} 0 l ${anchoChip} 56 l 0 56{\\p0}`,
   );
   filas.push(
-    `Dialogue: 1,0:00:00.00,${fin},Chip,,0,0,0,,{\\pos(${1020 - ancho / 2},102)\\an5}${escapar(seccion.toUpperCase())}`,
+    `Dialogue: 1,0:00:00.00,${fin},Chip,,0,0,0,,{\\pos(${g.chipX - anchoChip / 2},${g.chipY + 28})\\an5}${escapar(seccion.toUpperCase())}`,
   );
 
   // El sello de certeza y las fuentes, debajo del logo: es la promesa de la marca
@@ -195,42 +215,48 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
   if (certeza && CERTEZA[certeza]) {
     const c = CERTEZA[certeza];
     const leyenda = mediosCount > 1 ? `${c.texto}   ·   ${mediosCount} FUENTES` : c.texto;
-    const ancho = 34 + leyenda.length * 17;
+    const anchoSello = 34 + leyenda.length * 17;
     filas.push(
-      `Dialogue: 0,0:00:00.00,${fin},Certeza,,0,0,0,,{\\pos(52,150)\\an7\\p1\\c${color(c.color)}\\alpha&H50&\\bord0\\shad0}` +
-      `m 0 0 l ${ancho} 0 l ${ancho} 52 l 0 52{\\p0}`,
+      `Dialogue: 0,0:00:00.00,${fin},Certeza,,0,0,0,,{\\pos(${g.selloX},${g.selloY})\\an7\\p1\\c${color(c.color)}\\alpha&H50&\\bord0\\shad0}` +
+      `m 0 0 l ${anchoSello} 0 l ${anchoSello} 52 l 0 52{\\p0}`,
     );
     filas.push(
-      `Dialogue: 1,0:00:00.00,${fin},Certeza,,0,0,0,,{\\pos(69,176)\\an4\\c${color('#FFFFFF')}}${escapar(leyenda)}`,
+      `Dialogue: 1,0:00:00.00,${fin},Certeza,,0,0,0,,{\\pos(${g.selloX + 17},${g.selloY + 26})\\an4\\c${color('#FFFFFF')}}${escapar(leyenda)}`,
     );
   }
 
-  // El hook queda fijo: es el titular que se lee sin sonido.
-  //
-  // Anclado por ARRIBA (\an8), mientras el subtítulo se ancla por abajo. Con los
-  // dos centrados, un titular de dos líneas terminaba a 60 px del subtítulo y
-  // cualquier bloque que creciera se le metía encima. Anclados en direcciones
-  // opuestas crecen hacia afuera y el aire del medio nunca se pierde.
+  // Titular: grande, fijo, alineado a la izquierda desde el margen. Es lo que se
+  // lee sin sonido y lo que decide si alguien se queda.
   filas.push(
-    `Dialogue: 2,0:00:00.00,${fin},Hook,,0,0,0,,{\\pos(${g.margen},${g.hookY})\\an7\\fad(220,0)}${partirHook(hook)}`,
+    `Dialogue: 2,0:00:00.00,${fin},Titulo,,0,0,0,,{\\pos(${g.margen},${g.tituloY})\\an7\\fad(240,0)}` +
+    partirEnLineas(hook, g.tituloChars, 3),
   );
+
+  // La bajada de la NOTA, debajo del titular. Es texto fijo que amplía el titular,
+  // no tiene nada que ver con los subtítulos de la locución.
+  if (bajada) {
+    filas.push(
+      `Dialogue: 2,0:00:00.00,${fin},Bajada,,0,0,0,,{\\pos(${g.margen},${g.bajadaY})\\an7\\fad(420,0)}` +
+      partirEnLineas(bajada, g.bajadaChars, g.bajadaLineas),
+    );
+  }
 
   // Cuando el fondo no es una foto del hecho sino una imagen generada, se dice.
   // Publicar una recreación como si fuera documental quema la credibilidad del medio.
   if (imagenGenerada) {
     filas.push(
-      `Dialogue: 2,0:00:00.00,${fin},Aviso,,0,0,0,,{\\pos(24,1218)\\an1}Imagen ilustrativa generada con IA`,
+      `Dialogue: 2,0:00:00.00,${fin},Aviso,,0,0,0,,{\\pos(24,${g.tituloY - 44})\\an1}Imagen ilustrativa generada con IA`,
     );
   }
 
-  // Subtítulos: aparecen con un pop mínimo, sin animaciones que distraigan.
-  // Si un bloque es una sola palabra larguísima, se encoge en vez de desbordar.
+  // Subtítulos de la locución: en el MEDIO del cuadro, sobre la foto, centrados y
+  // grandes. Aparecen con un pop mínimo, sin animaciones que distraigan.
   for (const b of bloques) {
     const exceso = b.texto.length / g.maxChars;
     const escala = exceso > 1 ? Math.max(62, Math.round(100 / exceso)) : 100;
     filas.push(
       `Dialogue: 3,${t(b.desde)},${t(b.hasta)},Sub,,0,0,0,,` +
-      `{\\pos(${g.margen},${g.subY})\\an7\\fscx${Math.round(escala * 0.93)}\\fscy93` +
+      `{\\pos(${g.ancho / 2},${g.subY})\\an5\\fscx${Math.round(escala * 0.93)}\\fscy93` +
       `\\t(0,110,\\fscx${escala}\\fscy100)}${escapar(b.texto)}`,
     );
   }

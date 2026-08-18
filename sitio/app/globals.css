@@ -622,8 +622,10 @@ img { max-width: 100%; display: block; }
   z-index: 3;
   position: absolute;
   left: 0; right: 0; bottom: 0;
-  padding: 0 16px calc(10px + env(safe-area-inset-bottom));
-  display: flex; justify-content: center;
+  padding: 0 18px calc(14px + env(safe-area-inset-bottom));
+  /* A la DERECHA: el pie del propio video (el dominio y la bajada de marca) vive
+     en el borde izquierdo, y un botón centrado se le apoyaba justo encima. */
+  display: flex; justify-content: flex-end;
   color: #fff;
   pointer-events: none;
 }
