@@ -29,6 +29,8 @@ const SELLO = {
 export default function Tarjeta({ nota }) {
   const [abierto, setAbierto] = useState(false);
   const [voz, setVoz] = useState('langa');
+  // El video es lo que se produce casi siempre, así que viene elegido de entrada.
+  const [modo, setModo] = useState('avatar');
   const [estado, accion, enviando] = useActionState(pedirPieza, null);
   const [estadoDescarte, accionDescarte] = useActionState(descartarNoticia, null);
 
@@ -69,14 +71,31 @@ export default function Tarjeta({ nota }) {
           <form action={accion} className="elector">
             <input type="hidden" name="baulId" value={nota.id} />
 
+            {/*
+              Elegir el formato ya no manda el trabajo: antes cada opción era un
+              submit y el clic disparaba la pieza sin dar chance a mirar qué voz
+              quedaba puesta. Ahora se elige y después se confirma con Subir.
+            */}
+            <input type="hidden" name="modo" value={modo} />
+
             <div className="opciones">
-              <button type="submit" name="modo" value="simple" className="btn-opcion" disabled={enviando}>
+              <button
+                type="button"
+                className={`btn-opcion ${modo === 'simple' ? 'elegida' : ''}`}
+                onClick={() => setModo('simple')}
+                disabled={enviando}
+              >
                 <strong>Carrusel y placa</strong>
                 <span>Sin voz: titular y foto, para el feed</span>
               </button>
 
-              <div className="con-avatar">
-                <button type="submit" name="modo" value="avatar" className="btn-opcion destacado" disabled={enviando}>
+              <div className={`con-avatar ${modo === 'avatar' ? 'elegida' : ''}`}>
+                <button
+                  type="button"
+                  className="btn-opcion"
+                  onClick={() => setModo('avatar')}
+                  disabled={enviando}
+                >
                   <strong>Video</strong>
                   <span>Locución, subtítulos y las fotos de cada cobertura</span>
                 </button>
@@ -89,7 +108,7 @@ export default function Tarjeta({ nota }) {
                         name="avatar"
                         value={v.id}
                         checked={voz === v.id}
-                        onChange={() => setVoz(v.id)}
+                        onChange={() => { setVoz(v.id); setModo('avatar'); }}
                       />
                       {v.nombre}
                     </label>
@@ -98,9 +117,14 @@ export default function Tarjeta({ nota }) {
               </div>
             </div>
 
-            <button type="button" className="btn-fantasma" onClick={() => setAbierto(false)}>
-              Cancelar
-            </button>
+            <div className="cierre-elector">
+              <button type="button" className="btn-fantasma" onClick={() => setAbierto(false)}>
+                Cancelar
+              </button>
+              <button type="submit" className="btn-primario" disabled={enviando}>
+                Subir
+              </button>
+            </div>
           </form>
         )}
 

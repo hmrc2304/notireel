@@ -39,8 +39,11 @@ export const COLA = 1.1;         // segundos de aire al final para que no corte 
  *      puntos suspensivos; la locución va de a una palabra con cuerpo fijo
  *   7  la locución baja a tres cuartos de la foto; el piso del bloque sale de
  *      medir el pie en el marco, y la bajada achica el cuerpo antes que cortarse
+ *   8  zona segura del 6% arriba y abajo, para que el sitio pueda recortar y
+ *      llenar el ancho; el bloque de texto se achica hasta entrar en la franja;
+ *      sin el aviso de imagen generada
  */
-export const VERSION_RENDER = 7;
+export const VERSION_RENDER = 8;
 
 /**
  * Los dos formatos que se producen de cada noticia.

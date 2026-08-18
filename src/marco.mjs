@@ -53,20 +53,30 @@ function navegador() {
  * 16:9 la foto es todo el cuadro y el texto se apoya sobre un degradado. Por eso
  * las medidas van por formato en vez de escalarse.
  */
+/**
+ * Zona segura: nada de la marca toca el 6% de arriba ni el de abajo.
+ *
+ * El video es 9:16 y casi ninguna pantalla tiene esa relación exacta. Para que
+ * llene el ancho en un teléfono con la barra del navegador a la vista hay que
+ * recortarle alto, y el recorte medido va de 4,5% a 5,6% por lado. Con el logo
+ * arrancando en 3,9% y el pie terminando a 4,2% del borde, ese recorte se los
+ * comía. Instagram hace lo mismo con su propia interfaz encima del Reel, así
+ * que el margen sirve para las dos cosas.
+ */
 const FORMATOS = {
   vertical: {
     ancho: 1080, alto: 1920,
-    piso: 900, costura: 1120, techo: 320,
-    logoTop: 54, logoLeft: 52, logoFuente: 40, lemaFuente: 25,
+    piso: 900, costura: 1120, techo: 340,
+    logoTop: 122, logoLeft: 52, logoFuente: 40, lemaFuente: 25,
     acentoTop: 1268, acentoAncho: 78,
-    firmaLeft: 60, firmaBottom: 74, pieFuente: 33, pieChica: 24,
+    firmaLeft: 60, firmaBottom: 132, pieFuente: 33, pieChica: 24,
   },
   horizontal: {
     ancho: 1920, alto: 1080,
-    piso: 560, costura: null, techo: 240,
-    logoTop: 44, logoLeft: 56, logoFuente: 36, lemaFuente: 23,
+    piso: 560, costura: null, techo: 250,
+    logoTop: 70, logoLeft: 56, logoFuente: 36, lemaFuente: 23,
     acentoTop: null, acentoAncho: 64,
-    firmaLeft: 56, firmaBottom: 46, pieFuente: 26, pieChica: 19,
+    firmaLeft: 56, firmaBottom: 74, pieFuente: 26, pieChica: 19,
   },
 };
 

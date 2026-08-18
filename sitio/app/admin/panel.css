@@ -128,17 +128,43 @@
 .btn-opcion:hover { border-color: var(--acento); }
 .btn-opcion strong { font-size: 14px; color: var(--tinta); }
 .btn-opcion span { font-size: 12.5px; color: var(--tinta-3); line-height: 1.35; }
-.btn-opcion.destacado { background: var(--acento-suave); border-color: var(--acento); }
 .btn-opcion:disabled { opacity: .6; cursor: default; }
 
-.con-avatar { display: flex; flex-direction: column; gap: 6px; }
-.avatares { display: flex; gap: 5px; justify-content: flex-end; }
-.avatares label {
-  font-size: 12.5px; font-weight: 600; color: var(--tinta-2);
-  padding: 5px 11px; border-radius: 999px; background: var(--papel-2);
-  cursor: pointer; border: 1px solid transparent;
+/**
+ * La caja del video incluye la elección de voz.
+ *
+ * Las voces colgaban debajo del botón, fuera de su marco, y se leían como tres
+ * botones sueltos que no se sabía a qué pertenecían. El contenedor toma el
+ * marco y el botón lo pierde: visualmente es una sola caja con su opción
+ * adentro. No se puede meter los radios DENTRO del <button> (HTML inválido y
+ * los clics se pelean), así que el marco se muda un nivel para arriba.
+ */
+.con-avatar {
+  display: flex; flex-direction: column; gap: 9px;
+  background: var(--papel-2);
+  border: 1px solid var(--linea);
+  border-radius: 4px;
+  padding: 11px 16px;
+  max-width: 230px;
 }
-.avatares label.elegido { background: var(--acento); color: #fff; }
+.con-avatar .btn-opcion {
+  background: none; border: 0; padding: 0; max-width: none; border-radius: 0;
+}
+
+/* La opción elegida, mientras se decide. El envío lo hace el botón Subir. */
+.btn-opcion.elegida, .con-avatar.elegida {
+  background: var(--acento-suave); border-color: var(--acento);
+}
+
+.cierre-elector { display: flex; align-items: center; gap: 8px; }
+
+.avatares { display: flex; gap: 5px; justify-content: center; }
+.avatares label {
+  font-size: 11.5px; font-weight: 600; color: var(--tinta-2);
+  padding: 4px 10px; border-radius: 999px; background: var(--papel);
+  cursor: pointer; border: 1px solid var(--linea);
+}
+.avatares label.elegido { background: var(--acento); color: #fff; border-color: var(--acento); }
 .avatares input { position: absolute; opacity: 0; width: 0; height: 0; }
 
 .ya { font-size: 13.5px; font-weight: 700; color: var(--acento); white-space: nowrap; }

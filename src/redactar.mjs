@@ -219,7 +219,18 @@ export async function redactarNota(grupoCrudo) {
   const { comoParrafos } = await import('./acortar-notas.mjs');
   n.cuerpo = comoParrafos(n.parrafos).join('\n\n').replace(/\s*—\s*/g, ', ');
   delete n.parrafos;
-  n.titular = n.titular.replace(/\s*—\s*/g, ', ');
+  n.titular = String(n.titular ?? '').replace(/\s*—\s*/g, ', ');
+
+  // Los campos del enum son obligatorios en el esquema, pero forzar la
+  // herramienta obliga a usarla, no a completarla: una nota volvió sin
+  // `seccion` y el render del video se cayó con la nota ya publicada.
+  const SECCIONES = ['Mundo', 'Política', 'Economía', 'Sociedad', 'Tecnología', 'Deportes', 'Ciencia'];
+  if (!SECCIONES.includes(n.seccion)) n.seccion = 'Mundo';
+  if (!['confirmado', 'en_desarrollo', 'version_unica'].includes(n.certeza)) {
+    n.certeza = grupo.cantidadMedios > 1 ? 'confirmado' : 'version_unica';
+  }
+  n.bajada = String(n.bajada ?? '');
+  n.contraste = String(n.contraste ?? '');
 
   // El tope por párrafo sostiene el largo casi siempre. Cuando igual se pasa, el
   // acortador mide y reintenta con la cuenta exacta en la mano.

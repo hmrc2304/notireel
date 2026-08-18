@@ -41,10 +41,10 @@ import { DIRS } from './config.mjs';
 /*
  * `pisoY` sale de medir el marco, no de tantear.
  *
- * El pie con el dominio está pintado en el PNG del marco: en el vertical ocupa
- * de 1782 a 1840, en el horizontal de 983 a 1029. Con el piso en 968, la última
- * línea de la bajada del 16:9 caía entre 968 y 1001 y se montaba encima del pie.
- * Ahora el piso deja el cuerpo de esa línea más un respiro por debajo.
+ * El pie con el dominio está pintado en el PNG del marco: en el vertical arranca
+ * en 1724 y en el horizontal en 955. Antes el piso estaba puesto a ojo y la
+ * última línea de la bajada del 16:9 se montaba encima del pie. Ahora sale de
+ * medir el PNG y deja el cuerpo de esa línea más un respiro.
  *
  * `subY` es tres cuartos del espacio libre de la foto, no del cuadro entero: en
  * el 16:9 el texto arranca en 690, así que tres cuartos de 1080 caerían justo
@@ -54,22 +54,22 @@ const GEOMETRIA = {
   vertical: {
     ancho: 1080, alto: 1920,
     margen: 62,
-    // El bloque vive entre el borde de la foto y el pie de la marca (1782).
-    techoY: 1300, pisoY: 1706,
+    // El bloque vive entre el borde de la foto y el pie de la marca (1724).
+    techoY: 1300, pisoY: 1648,
     tituloMin: 62, tituloMax: 118, tituloLineas: 2, tituloInter: 0.82,
     bajadaFuente: 41, bajadaMin: 33, bajadaLineas: 4, bajadaInter: 50, bajadaAire: 40,
     subY: 937, subFuente: 78,
-    chipX: 1020, chipY: 74, selloX: 52, selloY: 150,
+    chipX: 1020, chipY: 142, selloX: 52, selloY: 218,
   },
   horizontal: {
     ancho: 1920, alto: 1080,
     margen: 62,
-    // El pie del marco horizontal arranca en 983.
-    techoY: 690, pisoY: 916,
+    // El pie del marco horizontal arranca en 955.
+    techoY: 690, pisoY: 888,
     tituloMin: 46, tituloMax: 86, tituloLineas: 2, tituloInter: 0.82,
     bajadaFuente: 33, bajadaMin: 27, bajadaLineas: 3, bajadaInter: 46, bajadaAire: 38,
     subY: 517, subFuente: 60,
-    chipX: 1860, chipY: 54, selloX: 56, selloY: 126,
+    chipX: 1860, chipY: 80, selloX: 56, selloY: 152,
   },
 };
 
@@ -291,12 +291,21 @@ const CERTEZA = {
   version_unica: { texto: 'UNA SOLA FUENTE', color: '#6B7683' },
 };
 
+/**
+ * Nada de lo que llega puede voltear el render.
+ *
+ * El esquema de la herramienta marca `seccion` como obligatoria, pero el modelo
+ * la omitió una vez y `seccion.length` tiró abajo la corrida entera: la nota ya
+ * estaba publicada y se quedó sin video. Forzar la herramienta obliga a usarla,
+ * no garantiza que venga completa.
+ */
 export function construirASS({
   hook, bajada = '', seccion, palabras, duracion,
   imagenGenerada = false, certeza = null, mediosCount = 0, formato = 'vertical',
 }) {
   const g = GEOMETRIA[formato] ?? GEOMETRIA.vertical;
-  const bloques = agrupar(palabras);
+  const bloques = agrupar(palabras ?? []);
+  seccion = String(seccion || 'Mundo');
   const fin = t(duracion + 1.2);
 
   const cabecera = `[Script Info]
@@ -356,36 +365,61 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
    * sin importar si el titular es corto o largo.
    */
   const anchoUtil = g.ancho - g.margen * 2;
+  const altoFranja = g.pisoY - g.techoY;
 
-  const titulo = cuerpoQueLlena(hook, {
-    ancho: anchoUtil,
-    fuente: 'anton',
-    maxLineas: g.tituloLineas,
-    min: g.tituloMin,
-    max: g.tituloMax,
-  });
-  const interTitulo = Math.round(titulo.tamano * g.tituloInter);
-  const altoTitulo = titulo.tamano + (titulo.lineas.length - 1) * interTitulo;
+  /*
+   * El bloque tiene que entrar en la franja, no solamente verse bien.
+   *
+   * Antes el titular y la bajada tomaban cada uno el cuerpo más grande que les
+   * entraba a lo ancho, y si la suma no cabía a lo alto el bloque se apoyaba en
+   * el techo y desbordaba: la última línea de la bajada terminó pisando el pie
+   * con el dominio. Ahora se prueban los dos cuerpos de mayor a menor y gana el
+   * primer par que entra en el alto disponible. Achicar es feo; superponer es
+   * un error.
+   */
+  const armar = (maxTitulo, maxBajada) => {
+    const titulo = cuerpoQueLlena(hook, {
+      ancho: anchoUtil, fuente: 'anton', maxLineas: g.tituloLineas,
+      min: g.tituloMin, max: maxTitulo,
+    });
+    const interTitulo = Math.round(titulo.tamano * g.tituloInter);
+    const altoTitulo = titulo.tamano + (titulo.lineas.length - 1) * interTitulo;
 
-  // La bajada baja de cuerpo antes que cortarse: entera en letra un poco más
-  // chica se lee, cortada con puntos suspensivos parece que falta el final.
-  const cuerpoBajada = bajada
-    ? cuerpoQueLlena(bajada, {
-      ancho: anchoUtil,
-      fuente: 'montserrat',
-      maxLineas: g.bajadaLineas,
-      min: g.bajadaMin,
-      max: g.bajadaFuente,
-      balancear: false,
-    })
-    : { tamano: g.bajadaFuente, lineas: [] };
+    // La bajada baja de cuerpo antes que cortarse: entera en letra un poco más
+    // chica se lee, cortada con puntos suspensivos parece que falta el final.
+    const cuerpoBajada = bajada
+      ? cuerpoQueLlena(bajada, {
+        ancho: anchoUtil, fuente: 'montserrat', maxLineas: g.bajadaLineas,
+        // Balanceada igual que el titular: llenar cada renglón al máximo dejaba
+        // el último con una sola palabra, y una huérfana se lee como un error.
+        min: g.bajadaMin, max: maxBajada, balancear: true,
+      })
+      : { tamano: maxBajada, lineas: [] };
 
+    // El interlineado acompaña al cuerpo, si no la bajada chica queda desarmada.
+    const interBajada = Math.round(g.bajadaInter * (cuerpoBajada.tamano / g.bajadaFuente));
+    const altoBajada = cuerpoBajada.lineas.length
+      ? g.bajadaAire + cuerpoBajada.tamano + (cuerpoBajada.lineas.length - 1) * interBajada
+      : 0;
+
+    return { titulo, interTitulo, altoTitulo, cuerpoBajada, interBajada, altoBajada };
+  };
+
+  let bloque = armar(g.tituloMax, g.bajadaFuente);
+  for (let t = g.tituloMax; t >= g.tituloMin; t -= 4) {
+    let entro = false;
+    for (let b = g.bajadaFuente; b >= g.bajadaMin; b -= 2) {
+      const prueba = armar(t, b);
+      if (prueba.altoTitulo + prueba.altoBajada <= altoFranja) { bloque = prueba; entro = true; break; }
+    }
+    if (entro) break;
+    // Si con la bajada al mínimo tampoco entra, el que tiene que ceder es el
+    // titular: la bajada ya está en su cuerpo más chico legible.
+    bloque = armar(t, g.bajadaMin);
+  }
+
+  const { titulo, interTitulo, altoTitulo, cuerpoBajada, interBajada, altoBajada } = bloque;
   const lineasBajada = cuerpoBajada.lineas;
-  // El interlineado acompaña al cuerpo, si no la bajada chica queda desarmada.
-  const interBajada = Math.round(g.bajadaInter * (cuerpoBajada.tamano / g.bajadaFuente));
-  const altoBajada = lineasBajada.length
-    ? g.bajadaAire + cuerpoBajada.tamano + (lineasBajada.length - 1) * interBajada
-    : 0;
 
   // Si el bloque no entra en la franja, se apoya en el techo y baja: prefiero que
   // muerda el borde de la foto antes que pisar el pie de la marca.
@@ -406,13 +440,10 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     }));
   }
 
-  // Cuando el fondo no es una foto del hecho sino una imagen generada, se dice.
-  // Publicar una recreación como si fuera documental quema la credibilidad del medio.
-  if (imagenGenerada) {
-    filas.push(
-      `Dialogue: 2,0:00:00.00,${fin},Aviso,,0,0,0,,{\\pos(24,${g.techoY - 44})\\an1}Imagen ilustrativa generada con IA`,
-    );
-  }
+  // El aviso de imagen generada ya no va quemado en el video, por pedido
+  // expreso. La nota sí lo sigue diciendo al pie de su foto, que es donde el
+  // lector puede leerlo entero y en contexto.
+  void imagenGenerada;
 
   // Subtítulos de la locución: en el MEDIO del cuadro, sobre la foto, centrados y
   // grandes. Aparecen con un pop mínimo, sin animaciones que distraigan.
