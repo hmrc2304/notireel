@@ -55,7 +55,7 @@ const GEOMETRIA = {
     margen: 62,
     techoY: 1240, pieY: 1724, respiro: 26,
     tituloMin: 74, tituloMax: 132, tituloLineas: 2, tituloInter: 0.80,
-    bajadaFuente: 47, bajadaMin: 40, bajadaLineas: 3, bajadaInter: 57, bajadaAire: 36,
+    bajadaFuente: 47, bajadaMin: 40, bajadaLineas: 3, bajadaInter: 57, bajadaAire: 2,
     subY: 952, subFuente: 88,
     chipX: 1020, chipY: 142, selloX: 52, selloY: 218,
   },
@@ -64,7 +64,7 @@ const GEOMETRIA = {
     margen: 62,
     techoY: 690, pieY: 955, respiro: 22,
     tituloMin: 54, tituloMax: 96, tituloLineas: 2, tituloInter: 0.80,
-    bajadaFuente: 38, bajadaMin: 32, bajadaLineas: 3, bajadaInter: 48, bajadaAire: 34,
+    bajadaFuente: 38, bajadaMin: 32, bajadaLineas: 3, bajadaInter: 48, bajadaAire: 2,
     subY: 552, subFuente: 68,
     chipX: 1860, chipY: 80, selloX: 56, selloY: 152,
   },
@@ -382,8 +382,17 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     const interTitulo = Math.round(titulo.tamano * g.tituloInter);
     const altoTitulo = titulo.tamano + (titulo.lineas.length - 1) * interTitulo;
 
-    // La bajada baja de cuerpo antes que cortarse: entera en letra un poco más
-    // chica se lee, cortada con puntos suspensivos parece que falta el final.
+    /*
+     * `bajadaAire` es chico a propósito.
+     *
+     * En Anton la mayúscula ocupa cerca del 72% del cuerpo, así que debajo del
+     * titular ya quedan 27px muertos en el 16:9 y 37 en el vertical. Sumarles
+     * 34 de aire dejaba un hueco visual de 60 a 73px y el titular se leía
+     * despegado de su bajada, como dos bloques sueltos en vez de uno.
+     *
+     * La bajada baja de cuerpo antes que cortarse: entera en letra un poco más
+     * chica se lee, cortada con puntos suspensivos parece que falta el final.
+     */
     const cuerpoBajada = bajada
       ? cuerpoQueLlena(bajada, {
         ancho: anchoUtil, fuente: 'montserrat', maxLineas: g.bajadaLineas,

@@ -45,8 +45,10 @@ export const COLA = 1.1;         // segundos de aire al final para que no corte 
  *   9  la locucion baja a cuatro quintos de la foto
  *  10  todo el texto mas grande: la foto cede 60px de alto, la bajada baja a
  *      tres renglones y el piso del bloque se calcula con el cuerpo real
+ *  11  el titular pegado a su bajada: en Anton la mayuscula deja 27px muertos
+ *      debajo del cuerpo y el aire de mas los despegaba en dos bloques sueltos
  */
-export const VERSION_RENDER = 10;
+export const VERSION_RENDER = 11;
 
 /**
  * Los dos formatos que se producen de cada noticia.
