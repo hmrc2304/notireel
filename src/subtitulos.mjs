@@ -38,24 +38,37 @@ import { DIRS } from './config.mjs';
  * entra en dos renglones parejos, la bajada se queda con el resto, y los dos se
  * apilan hacia arriba desde el piso. La franja siempre queda llena.
  */
+/*
+ * `pisoY` sale de medir el marco, no de tantear.
+ *
+ * El pie con el dominio está pintado en el PNG del marco: en el vertical ocupa
+ * de 1782 a 1840, en el horizontal de 983 a 1029. Con el piso en 968, la última
+ * línea de la bajada del 16:9 caía entre 968 y 1001 y se montaba encima del pie.
+ * Ahora el piso deja el cuerpo de esa línea más un respiro por debajo.
+ *
+ * `subY` es tres cuartos del espacio libre de la foto, no del cuadro entero: en
+ * el 16:9 el texto arranca en 690, así que tres cuartos de 1080 caerían justo
+ * sobre el titular.
+ */
 const GEOMETRIA = {
   vertical: {
     ancho: 1080, alto: 1920,
     margen: 62,
-    // El bloque vive entre el borde de la foto y el pie de la marca.
-    techoY: 1300, pisoY: 1726,
+    // El bloque vive entre el borde de la foto y el pie de la marca (1782).
+    techoY: 1300, pisoY: 1706,
     tituloMin: 62, tituloMax: 118, tituloLineas: 2, tituloInter: 0.82,
-    bajadaFuente: 41, bajadaLineas: 4, bajadaInter: 50, bajadaAire: 34,
-    subY: 860, subFuente: 78,
+    bajadaFuente: 41, bajadaMin: 33, bajadaLineas: 4, bajadaInter: 50, bajadaAire: 40,
+    subY: 937, subFuente: 78,
     chipX: 1020, chipY: 74, selloX: 52, selloY: 150,
   },
   horizontal: {
     ancho: 1920, alto: 1080,
     margen: 62,
-    techoY: 690, pisoY: 968,
+    // El pie del marco horizontal arranca en 983.
+    techoY: 690, pisoY: 916,
     tituloMin: 46, tituloMax: 86, tituloLineas: 2, tituloInter: 0.82,
-    bajadaFuente: 33, bajadaLineas: 3, bajadaInter: 41, bajadaAire: 26,
-    subY: 420, subFuente: 60,
+    bajadaFuente: 33, bajadaMin: 27, bajadaLineas: 3, bajadaInter: 46, bajadaAire: 38,
+    subY: 517, subFuente: 60,
     chipX: 1860, chipY: 54, selloX: 56, selloY: 126,
   },
 };
@@ -198,6 +211,11 @@ function partirEnLineas(texto, { ancho, fuente, tamano, maxLineas = 3, balancear
   return lineas;
 }
 
+/** ¿Quedó todo el texto, o el repartidor tuvo que recortar? */
+const entroEntero = (texto, lineas) =>
+  lineas.join(' ').split(/\s+/).length === String(texto).trim().split(/\s+/).length
+  && !lineas.some((l) => l.endsWith('…'));
+
 /**
  * El cuerpo más grande con el que el texto entra en `maxLineas` renglones
  * llenando el ancho disponible.
@@ -205,17 +223,23 @@ function partirEnLineas(texto, { ancho, fuente, tamano, maxLineas = 3, balancear
  * Un titular corto con cuerpo fijo deja media franja vacía y se ve chico; uno
  * largo se desborda. Con el cuerpo calculado, el renglón más ancho siempre roza
  * el margen y el bloque ocupa lo que tiene que ocupar.
+ *
+ * Para la bajada sirve para lo contrario: bajar un punto o dos de cuerpo antes
+ * que cortar con puntos suspensivos. Una bajada larga entera en letra un poco
+ * más chica se lee; una cortada a la mitad, no.
  */
-function cuerpoQueLlena(texto, { ancho, fuente, maxLineas, min, max }) {
+function cuerpoQueLlena(texto, { ancho, fuente, maxLineas, min, max, balancear = true }) {
   for (let t = max; t >= min; t -= 2) {
-    const lineas = partirEnLineas(texto, { ancho, fuente, tamano: t, maxLineas, balancear: true });
-    if (lineas.length <= maxLineas && lineas.every((l) => anchoDe(l, fuente, t) <= ancho)) {
+    const lineas = partirEnLineas(texto, { ancho, fuente, tamano: t, maxLineas, balancear });
+    if (lineas.length <= maxLineas
+      && entroEntero(texto, lineas)
+      && lineas.every((l) => anchoDe(l, fuente, t) <= ancho)) {
       return { tamano: t, lineas };
     }
   }
   return {
     tamano: min,
-    lineas: partirEnLineas(texto, { ancho, fuente, tamano: min, maxLineas, balancear: true }),
+    lineas: partirEnLineas(texto, { ancho, fuente, tamano: min, maxLineas, balancear }),
   };
 }
 
@@ -343,16 +367,24 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
   const interTitulo = Math.round(titulo.tamano * g.tituloInter);
   const altoTitulo = titulo.tamano + (titulo.lineas.length - 1) * interTitulo;
 
-  const lineasBajada = bajada
-    ? partirEnLineas(bajada, {
+  // La bajada baja de cuerpo antes que cortarse: entera en letra un poco más
+  // chica se lee, cortada con puntos suspensivos parece que falta el final.
+  const cuerpoBajada = bajada
+    ? cuerpoQueLlena(bajada, {
       ancho: anchoUtil,
       fuente: 'montserrat',
-      tamano: g.bajadaFuente,
       maxLineas: g.bajadaLineas,
+      min: g.bajadaMin,
+      max: g.bajadaFuente,
+      balancear: false,
     })
-    : [];
+    : { tamano: g.bajadaFuente, lineas: [] };
+
+  const lineasBajada = cuerpoBajada.lineas;
+  // El interlineado acompaña al cuerpo, si no la bajada chica queda desarmada.
+  const interBajada = Math.round(g.bajadaInter * (cuerpoBajada.tamano / g.bajadaFuente));
   const altoBajada = lineasBajada.length
-    ? g.bajadaAire + g.bajadaFuente + (lineasBajada.length - 1) * g.bajadaInter
+    ? g.bajadaAire + cuerpoBajada.tamano + (lineasBajada.length - 1) * interBajada
     : 0;
 
   // Si el bloque no entra en la franja, se apoya en el techo y baja: prefiero que
@@ -370,7 +402,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     filas.push(...bloqueDeTexto({
       lineas: lineasBajada,
       estilo: 'Bajada', x: g.margen, y: arranque + altoTitulo + g.bajadaAire,
-      interlineado: g.bajadaInter, fin, fade: 420,
+      interlineado: interBajada, fin, fade: 420, tamano: cuerpoBajada.tamano,
     }));
   }
 

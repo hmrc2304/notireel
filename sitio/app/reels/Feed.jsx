@@ -122,13 +122,24 @@ export default function Feed({ notas }) {
                 visual, no como la única forma de entrar. */}
             <a href={`/nota/${n.slug}`} className="reel-tapa" aria-label={n.titular} />
 
+            {/*
+              Sin `loop`: cuando la locución termina, el feed pasa solo a la
+              nota siguiente. Repetir el mismo video en bucle deja al lector
+              esperando un final que ya pasó, y la pieza dura menos de treinta
+              segundos. En la última no hay a dónde ir, así que esa sí repite.
+            */}
             <video
               src={n.video_url}
               poster={n.imagen_url ?? undefined}
               muted
-              loop
+              loop={i === notas.length - 1}
               playsInline
               preload={i < 2 ? 'auto' : 'none'}
+              onEnded={() => {
+                // Solo avanza el que se está mirando: si el lector ya se movió
+                // a mano, un `ended` tardío lo haría saltar una nota de más.
+                if (i === activo && i < notas.length - 1) irA(i + 1);
+              }}
             />
 
             <div className="reel-velo" />

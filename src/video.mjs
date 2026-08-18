@@ -37,8 +37,10 @@ export const COLA = 1.1;         // segundos de aire al final para que no corte 
  *   6  renglones medidos con la fuente real y justificados al margen; el cuerpo
  *      del titular se calcula para llenar la franja; la bajada entra entera, sin
  *      puntos suspensivos; la locución va de a una palabra con cuerpo fijo
+ *   7  la locución baja a tres cuartos de la foto; el piso del bloque sale de
+ *      medir el pie en el marco, y la bajada achica el cuerpo antes que cortarse
  */
-export const VERSION_RENDER = 6;
+export const VERSION_RENDER = 7;
 
 /**
  * Los dos formatos que se producen de cada noticia.
