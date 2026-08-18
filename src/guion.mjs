@@ -7,8 +7,7 @@
 
 import { pathToFileURL } from 'node:url';
 import { env , esPrincipal } from './config.mjs';
-
-const MODELO = 'claude-sonnet-5';
+import { pedirHerramienta } from './claude.mjs';
 
 const SISTEMA = `Redactás guiones de video para Notiviral, un medio de noticias que publica
 en formato vertical. Los libretos se leen en voz alta en 30 a 40 segundos.
@@ -60,30 +59,15 @@ CUERPO:
 ${nota.cuerpo}`;
 }
 
-export async function escribirGuion(nota, apiKey = env('ANTHROPIC_API_KEY')) {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: MODELO,
-      max_tokens: 1200,
-      system: SISTEMA,
-      tools: [HERRAMIENTA],
-      tool_choice: { type: 'tool', name: 'entregar_guion' },
-      messages: [{ role: 'user', content: prompt(nota) }],
-    }),
+export async function escribirGuion(nota) {
+  const g = await pedirHerramienta({
+    etapa: 'guion',
+    maxTokens: 1200,
+    sistema: SISTEMA,
+    herramienta: HERRAMIENTA,
+    mensajes: [{ role: 'user', content: prompt(nota) }],
   });
 
-  if (!res.ok) throw new Error(`Anthropic ${res.status}: ${await res.text()}`);
-  const data = await res.json();
-  const uso = data.content.find((b) => b.type === 'tool_use');
-  if (!uso) throw new Error(`el modelo no usó la herramienta: ${JSON.stringify(data.content).slice(0, 300)}`);
-
-  const g = uso.input;
   // El modelo a veces se olvida y mete una raya igual.
   g.libreto = g.libreto.replace(/\s*—\s*/g, ', ');
   g.caption = g.caption.replace(/\s*—\s*/g, ', ');

@@ -14,8 +14,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { env, DIRS, esPrincipal, esSinSaldo } from './config.mjs';
+import { pedirHerramienta, MODELO_LIVIANO } from './claude.mjs';
 
-const MODELO = 'claude-sonnet-5';
+/** Largo máximo del cuerpo. Arriba de esto la nota pasa por el acortador. */
+const LARGO_MAXIMO = 300;
+const contarPalabras = (t) => String(t).trim().split(/\s+/).filter(Boolean).length;
 
 /* ─────────────────────────── ranking ─────────────────────────── */
 
@@ -147,32 +150,30 @@ export async function depurarGrupo(grupo) {
     .map((n, i) => `${i}. [${n.medio}] ${n.titulo}`)
     .join('\n');
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': env('ANTHROPIC_API_KEY'),
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: MODELO,
-      max_tokens: 800,
-      system: `Recibís titulares que un agrupador automático juntó como si fueran el mismo hecho.
+  let entrada;
+  try {
+    // Decidir qué titular es del mismo hecho es una tarea mecánica: no necesita
+    // el modelo grande y a una llamada por nota publicada, la diferencia se nota.
+    entrada = await pedirHerramienta({
+      etapa: 'depurar',
+      modelo: MODELO_LIVIANO,
+      maxTokens: 800,
+      sistema: `Recibís titulares que un agrupador automático juntó como si fueran el mismo hecho.
 El agrupador se equivoca: mete titulares que solo comparten alguna palabra.
 
 Tomá el hecho del PRIMER titular como referencia y decidí cuáles de los demás tratan
 ESE MISMO hecho puntual. Un titular sobre el mismo país, la misma persona o el mismo
 conflicto pero sobre otro episodio NO va. Los titulares en otros idiomas cuentan si
 son del mismo hecho. Incluí siempre el 0.`,
-      tools: [DEPURAR],
-      tool_choice: { type: 'tool', name: 'depurar_grupo' },
-      messages: [{ role: 'user', content: lista }],
-    }),
-  });
+      herramienta: DEPURAR,
+      mensajes: [{ role: 'user', content: lista }],
+    });
+  } catch {
+    // Sin depurar se redacta igual, con el grupo tal como vino.
+    return grupo;
+  }
 
-  if (!res.ok) return grupo;
-  const uso = (await res.json()).content.find((b) => b.type === 'tool_use');
-  if (!uso) return grupo;
+  const uso = { input: entrada };
 
   const quedan = new Set(uso.input.del_hecho.filter((i) => Number.isInteger(i) && grupo.noticias[i]));
   quedan.add(0);
@@ -194,31 +195,26 @@ son del mismo hecho. Incluí siempre el 0.`,
 
 export async function redactarNota(grupoCrudo) {
   const grupo = await depurarGrupo(grupoCrudo);
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': env('ANTHROPIC_API_KEY'),
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: MODELO,
-      max_tokens: 2500,
-      system: SISTEMA,
-      tools: [HERRAMIENTA],
-      tool_choice: { type: 'tool', name: 'entregar_nota' },
-      messages: [{ role: 'user', content: material(grupo) }],
-    }),
+  const n = await pedirHerramienta({
+    etapa: 'redactar',
+    maxTokens: 1600,
+    sistema: SISTEMA,
+    herramienta: HERRAMIENTA,
+    mensajes: [{ role: 'user', content: material(grupo) }],
   });
 
-  if (!res.ok) throw new Error(`Anthropic ${res.status}: ${(await res.text()).slice(0, 300)}`);
-  const data = await res.json();
-  const uso = data.content.find((b) => b.type === 'tool_use');
-  if (!uso) throw new Error('el modelo no redactó la nota');
-
-  const n = uso.input;
   n.cuerpo = n.cuerpo.replace(/\s*—\s*/g, ', ');
   n.titular = n.titular.replace(/\s*—\s*/g, ', ');
+
+  // Pedir el largo en el prompt no alcanza: el modelo corta hasta que le parece
+  // suficiente, sin contar, y se va largo cada tanto. El acortador sí mide y
+  // reintenta, así que se encarga él de las que se pasan.
+  if (contarPalabras(n.cuerpo) > LARGO_MAXIMO) {
+    const { acortar } = await import('./acortar-notas.mjs');
+    const corto = await acortar({ titular: n.titular, cuerpo: n.cuerpo });
+    if (corto) n.cuerpo = corto.replace(/\s*—\s*/g, ', ');
+  }
+
   // A veces devuelve las etiquetas como texto separado por comas en vez de lista,
   // y Postgres rechaza el insert entero por el array mal formado.
   if (!Array.isArray(n.etiquetas)) n.etiquetas = String(n.etiquetas ?? '').split(/\s*,\s*/);

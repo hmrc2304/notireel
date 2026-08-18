@@ -17,6 +17,7 @@
  */
 
 import { env, esPrincipal } from './config.mjs';
+import { pedirHerramienta, MODELO_LIVIANO } from './claude.mjs';
 
 const VACIAS = new Set([
   'para', 'como', 'este', 'esta', 'estos', 'estas', 'pero', 'porque', 'cuando', 'donde',
@@ -318,32 +319,20 @@ async function fusionarConClaude(grupos, limite) {
   const candidatos = grupos.slice(0, limite);
   const lista = candidatos.map((g, i) => `${i}. [${g.medios.join(', ')}] ${g.titular}`).join('\n');
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': env('ANTHROPIC_API_KEY'),
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-5',
-      max_tokens: 2000,
-      system: CRITERIO,
-      tools: [HERRAMIENTA],
-      tool_choice: { type: 'tool', name: 'fusionar_grupos' },
-      messages: [{ role: 'user', content: lista }],
-    }),
+  const salida = await pedirHerramienta({
+    etapa: 'fusionar',
+    modelo: MODELO_LIVIANO,
+    maxTokens: 2000,
+    sistema: CRITERIO,
+    herramienta: HERRAMIENTA,
+    mensajes: [{ role: 'user', content: lista }],
   });
-
-  if (!res.ok) throw new Error(`Anthropic ${res.status}: ${(await res.text()).slice(0, 300)}`);
-  const data = await res.json();
-  const uso = data.content.find((b) => b.type === 'tool_use');
 
   // Solo valen los números que estaban en la lista. Un índice de más no es una
   // fusión posible sino un grupo que el modelo nunca vio, y fusionarlo pega
   // cualquier cosa: así se coló la central nuclear de Almaraz adentro de la nota
   // del Constitucional francés.
-  return (uso?.input?.fusiones ?? [])
+  return (salida?.fusiones ?? [])
     .map((f) => (Array.isArray(f) ? f.filter((i) => Number.isInteger(i) && i >= 0 && i < candidatos.length) : []))
     .filter((f) => f.length >= 2);
 }

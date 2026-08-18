@@ -14,6 +14,7 @@
  */
 
 import { env, esPrincipal, salirPorError } from './config.mjs';
+import { pedirHerramienta, MODELO_LIVIANO } from './claude.mjs';
 
 const URL_BASE = () => env('SUPABASE_NOTIREEL_URL');
 const CLAVE = () => env('SUPABASE_NOTIREEL_SERVICE_KEY');
@@ -110,31 +111,21 @@ const INSTRUCCION_TRADUCIR =
 
 /** Una tanda: pide la traducción y la aplica sobre `filas`. Devuelve cuántas entraron. */
 async function tandaDeTraduccion(filas, pendientes) {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': env('ANTHROPIC_API_KEY'),
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-5',
-      max_tokens: 8000,
-      system: INSTRUCCION_TRADUCIR,
-      tools: [HERRAMIENTA_TRADUCIR],
-      tool_choice: { type: 'tool', name: 'traducir' },
-      messages: [{
-        role: 'user',
-        content: pendientes
-          .map((x) => `${x.i}. ${filas[x.i].titular}\n   bajada: ${(filas[x.i].bajada ?? '').slice(0, 300)}`)
-          .join('\n\n'),
-      }],
-    }),
+  const entrada = await pedirHerramienta({
+    etapa: 'traducir',
+    modelo: MODELO_LIVIANO,
+    maxTokens: 8000,
+    sistema: INSTRUCCION_TRADUCIR,
+    herramienta: HERRAMIENTA_TRADUCIR,
+    mensajes: [{
+      role: 'user',
+      content: pendientes
+        .map((x) => `${x.i}. ${filas[x.i].titular}\n   bajada: ${(filas[x.i].bajada ?? '').slice(0, 300)}`)
+        .join('\n\n'),
+    }],
   });
 
-  if (!res.ok) throw new Error(`Anthropic ${res.status}`);
-  const data = await res.json();
-  const salida = data.content.find((b) => b.type === 'tool_use')?.input?.textos ?? [];
+  const salida = entrada?.textos ?? [];
 
   let hechos = 0;
   for (const { n, titular, bajada } of salida) {

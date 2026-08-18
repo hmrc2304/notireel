@@ -17,6 +17,7 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { env, DIRS, esPrincipal } from './config.mjs';
+import { pedirHerramienta } from './claude.mjs';
 import { MARCA } from './marco.mjs';
 
 const RUTA_EDGE = [
@@ -75,31 +76,17 @@ REGLAS DURAS:
 - Cada punto tiene que aportar un dato distinto. Nada de repetir el titular con otras palabras.`;
 
 export async function escribirTarjetas(nota) {
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': env('ANTHROPIC_API_KEY'),
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-5',
-      max_tokens: 1200,
-      system: SISTEMA,
-      tools: [HERRAMIENTA],
-      tool_choice: { type: 'tool', name: 'entregar_tarjetas' },
-      messages: [{
-        role: 'user',
-        content: `TITULAR: ${nota.titular ?? nota.titulo}\nBAJADA: ${nota.bajada}\n\nNOTA:\n${(nota.cuerpo ?? '').slice(0, 3000)}`,
-      }],
-    }),
+  const t = await pedirHerramienta({
+    etapa: 'tarjetas',
+    maxTokens: 1200,
+    sistema: SISTEMA,
+    herramienta: HERRAMIENTA,
+    mensajes: [{
+      role: 'user',
+      content: `TITULAR: ${nota.titular ?? nota.titulo}\nBAJADA: ${nota.bajada}\n\nNOTA:\n${(nota.cuerpo ?? '').slice(0, 3000)}`,
+    }],
   });
 
-  if (!res.ok) throw new Error(`Anthropic ${res.status}: ${(await res.text()).slice(0, 300)}`);
-  const uso = (await res.json()).content.find((b) => b.type === 'tool_use');
-  if (!uso) throw new Error('el modelo no entregó las tarjetas');
-
-  const t = uso.input;
   t.portada = t.portada.replace(/\s*—\s*/g, ', ');
   t.cierre = t.cierre.replace(/\s*—\s*/g, ', ');
   t.puntos = t.puntos.map((p) => ({ ...p, texto: p.texto.replace(/\s*—\s*/g, ', ') }));

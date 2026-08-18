@@ -15,6 +15,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { env, DIRS, esPrincipal } from './config.mjs';
+import { pedirHerramienta, MODELO_LIVIANO } from './claude.mjs';
 import { generarImagen, bajar } from './kie.mjs';
 
 /** Debajo de esto la imagen se ve pixelada al ampliarla a 1080 de ancho. */
@@ -90,34 +91,20 @@ export async function evaluarImagen(rutaLocal) {
   const bytes = fs.readFileSync(rutaLocal);
   const tipo = bytes[0] === 0x89 ? 'image/png' : 'image/jpeg';
 
-  const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': env('ANTHROPIC_API_KEY'),
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'claude-sonnet-5',
-      max_tokens: 300,
-      system: CRITERIO,
-      tools: [HERRAMIENTA],
-      tool_choice: { type: 'tool', name: 'evaluar_imagen' },
-      messages: [{
-        role: 'user',
-        content: [
-          { type: 'image', source: { type: 'base64', media_type: tipo, data: bytes.toString('base64') } },
-          { type: 'text', text: '¿Sirve como fondo?' },
-        ],
-      }],
-    }),
+  return pedirHerramienta({
+    etapa: 'evaluar-imagen',
+    modelo: MODELO_LIVIANO,
+    maxTokens: 300,
+    sistema: CRITERIO,
+    herramienta: HERRAMIENTA,
+    mensajes: [{
+      role: 'user',
+      content: [
+        { type: 'image', source: { type: 'base64', media_type: tipo, data: bytes.toString('base64') } },
+        { type: 'text', text: '¿Sirve como fondo?' },
+      ],
+    }],
   });
-
-  if (!res.ok) throw new Error(`Anthropic visión ${res.status}: ${(await res.text()).slice(0, 300)}`);
-  const data = await res.json();
-  const uso = data.content.find((b) => b.type === 'tool_use');
-  if (!uso) throw new Error('el modelo no evaluó la imagen');
-  return uso.input;
 }
 
 /** Plan B: una foto propia a partir del titular, sin nada de texto adentro. */
