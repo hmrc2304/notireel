@@ -42,8 +42,9 @@ export const COLA = 1.1;         // segundos de aire al final para que no corte 
  *   8  zona segura del 6% arriba y abajo, para que el sitio pueda recortar y
  *      llenar el ancho; el bloque de texto se achica hasta entrar en la franja;
  *      sin el aviso de imagen generada
+ *   9  la locucion baja a cuatro quintos de la foto
  */
-export const VERSION_RENDER = 8;
+export const VERSION_RENDER = 9;
 
 /**
  * Los dos formatos que se producen de cada noticia.

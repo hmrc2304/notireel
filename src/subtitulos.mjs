@@ -46,29 +46,29 @@ import { DIRS } from './config.mjs';
  * última línea de la bajada del 16:9 se montaba encima del pie. Ahora sale de
  * medir el PNG y deja el cuerpo de esa línea más un respiro.
  *
- * `subY` es tres cuartos del espacio libre de la foto, no del cuadro entero: en
- * el 16:9 el texto arranca en 690, así que tres cuartos de 1080 caerían justo
- * sobre el titular.
+ * `subY` son cuatro quintos del espacio libre de la foto, no del cuadro entero:
+ * en el 16:9 el texto arranca en 690, así que cuatro quintos de 1080 caerían
+ * bastante por debajo del titular.
  */
 const GEOMETRIA = {
   vertical: {
     ancho: 1080, alto: 1920,
     margen: 62,
-    // El bloque vive entre el borde de la foto y el pie de la marca (1724).
-    techoY: 1300, pisoY: 1648,
+    // El bloque baja hasta 24px antes del pie de la marca, que arranca en 1724.
+    techoY: 1300, pisoY: 1700,
     tituloMin: 62, tituloMax: 118, tituloLineas: 2, tituloInter: 0.82,
     bajadaFuente: 41, bajadaMin: 33, bajadaLineas: 4, bajadaInter: 50, bajadaAire: 40,
-    subY: 937, subFuente: 78,
+    subY: 1000, subFuente: 78,
     chipX: 1020, chipY: 142, selloX: 52, selloY: 218,
   },
   horizontal: {
     ancho: 1920, alto: 1080,
     margen: 62,
     // El pie del marco horizontal arranca en 955.
-    techoY: 690, pisoY: 888,
+    techoY: 690, pisoY: 926,
     tituloMin: 46, tituloMax: 86, tituloLineas: 2, tituloInter: 0.82,
     bajadaFuente: 33, bajadaMin: 27, bajadaLineas: 3, bajadaInter: 46, bajadaAire: 38,
-    subY: 517, subFuente: 60,
+    subY: 552, subFuente: 60,
     chipX: 1860, chipY: 80, selloX: 56, selloY: 152,
   },
 };

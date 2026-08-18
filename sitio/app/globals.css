@@ -619,7 +619,7 @@ img { max-width: 100%; display: block; }
    * sobrante, la barra se agranda donde hay lugar y se achica donde no, y el
    * video llena el ancho. El mínimo es lo que mide el botón.
    */
-  --barra-reel: clamp(44px, calc(100dvh - 100vw * 16 / 9), 92px);
+  --barra-reel: clamp(40px, calc(100dvh - 100vw * 16 / 9), 58px);
   position: fixed;
   inset: 0;
   overflow-y: scroll;
@@ -685,12 +685,19 @@ img { max-width: 100%; display: block; }
   background: linear-gradient(to bottom, transparent 0%, transparent 74%, rgba(0,0,0,.72) 100%);
 }
 
-/* La barra es el segundo tramo de la columna: ocupa su alto y nada más, así que
-   nunca puede pisar el video ni quedar recortada por él. */
+/**
+ * La barra es el segundo tramo de la columna: ocupa su alto y nada más, así que
+ * nunca puede pisar el video ni quedar recortada por él.
+ *
+ * El botón arranca en la misma vertical que el titular del video. Ese margen es
+ * de 62px sobre 1080 en la pieza, o sea 5,74%, así que va en porcentaje y no en
+ * píxeles: en cualquier pantalla el borde del botón cae debajo de la primera
+ * letra del titular en vez de a un par de píxeles de distancia.
+ */
 .reel-datos {
   flex: 0 0 var(--barra-reel);
-  display: flex; align-items: center; justify-content: center;
-  padding: 0 18px calc(env(safe-area-inset-bottom) / 2);
+  display: flex; align-items: center; justify-content: flex-start;
+  padding: 0 5.74% calc(env(safe-area-inset-bottom) / 2);
   background: #000;
 }
 
@@ -712,8 +719,8 @@ img { max-width: 100%; display: block; }
 
 .reel-cta {
   background: #12A093; color: #fff;
-  font-size: 14px; font-weight: 800;
-  padding: 9px 18px; border-radius: 999px;
+  font-size: 13.5px; font-weight: 800;
+  padding: 7px 16px; border-radius: 999px;
   box-shadow: 0 6px 20px rgba(0,0,0,.45);
 }
 .reel-cta:hover { background: #0E8177; }
