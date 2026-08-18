@@ -235,13 +235,24 @@ async function comprimir(origen) {
  * Nombre de archivo apto para Storage: sin tildes, espacios ni signos.
  * Supabase rechaza la subida entera con InvalidKey si la clave los trae.
  */
-function nombreSeguro(texto) {
-  return String(texto)
+/**
+ * Nombre de archivo sin acentos ni espacios, con tope de largo.
+ *
+ * El sufijo se pega DESPUÉS de recortar, y por eso existe el parámetro. Cuando
+ * se concatenaba antes, un slug largo se comía el sufijo al truncar: el video
+ * 16:9 se subía con el mismo nombre que el vertical, lo sobrescribía, y el feed
+ * terminaba mostrando el horizontal como si fuera el reel.
+ */
+function nombreSeguro(texto, sufijo = '') {
+  const limpio = (t) => String(t)
     .normalize('NFD').replace(/[̀-ͯ]/g, '')
     .replace(/[^a-zA-Z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
-    .toLowerCase()
-    .slice(0, 60) || 'medio';
+    .toLowerCase();
+
+  const cola = sufijo ? `-${limpio(sufijo)}` : '';
+  const base = limpio(texto).slice(0, 60 - cola.length) || 'medio';
+  return `${base}${cola}`;
 }
 
 /** Sube una imagen al bucket público del sitio y devuelve su URL definitiva. */
@@ -268,10 +279,10 @@ export async function subirImagen(ruta, nombre) {
 }
 
 /** Sube el mp4 de una nota y deja su URL en el registro, para el sitio y el feed. */
-export async function subirVideo(mp4, slug) {
+export async function subirVideo(mp4, slug, { sufijo = '' } = {}) {
   const fs = await import('node:fs');
   const bucket = 'medios';
-  const destino = `${new Date().toISOString().slice(0, 10)}/${nombreSeguro(slug)}.mp4`;
+  const destino = `${new Date().toISOString().slice(0, 10)}/${nombreSeguro(slug, sufijo)}.mp4`;
 
   const res = await fetch(`${URL_BASE()}/storage/v1/object/${bucket}/${destino}`, {
     method: 'POST',

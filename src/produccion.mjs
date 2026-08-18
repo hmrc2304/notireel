@@ -88,7 +88,7 @@ async function producirVideo(nota, publicada, fondo, voz, fondoGenerado) {
   // El 16:9 es para el reproductor de la nota; si su render falló, la nota se
   // queda con el vertical antes que sin video.
   const horizontalUrl = piezas.horizontal
-    ? await subirVideo(piezas.horizontal, `${publicada.slug}-16x9`)
+    ? await subirVideo(piezas.horizontal, publicada.slug, { sufijo: '16x9' })
     : null;
 
   await marcarVideo(publicada.slug, {

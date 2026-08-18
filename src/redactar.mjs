@@ -51,7 +51,7 @@ const HERRAMIENTA = {
     properties: {
       titular: { type: 'string', description: 'titular propio en español, concreto, sin signos de exclamación ni mayúsculas sostenidas' },
       bajada: { type: 'string', description: 'una o dos frases que amplían el titular, hasta 200 caracteres' },
-      cuerpo: { type: 'string', description: 'la nota en español, de 200 a 260 palabras, en cuatro o cinco párrafos cortos separados por una línea en blanco' },
+      cuerpo: { type: 'string', description: 'la nota en español, de 200 a 290 palabras, en cuatro o cinco párrafos cortos separados por una línea en blanco' },
       seccion: { type: 'string', enum: ['Mundo', 'Política', 'Economía', 'Sociedad', 'Tecnología', 'Deportes', 'Ciencia'] },
       contraste: {
         type: 'string',
@@ -84,8 +84,8 @@ REGLAS DURAS:
 - Frases cortas y directas. Nada de adjetivos de relleno ni de suspenso artificial.
 - PROHIBIDO el guion largo (—). Usá coma o punto.
 - Nada de "en un hecho sin precedentes", "lo que nadie te cuenta" ni fórmulas de clickbait.
-- CORTA: entre 200 y 260 palabras, en cuatro o cinco párrafos de dos o tres frases.
-  Poco más de un minuto de lectura. El lector llega desde un video de treinta segundos:
+- CORTA: entre 200 y 290 palabras, en cuatro o cinco párrafos de dos o tres frases.
+  Entre un minuto y un minuto y medio de lectura, nunca más. El lector llega desde un video de treinta segundos:
   viene a confirmar el hecho y a ver quién lo dice, no a leer una crónica. Si el
   material da para menos, escribí menos.
 - Lo necesario y nada más: qué pasó, dónde, cuándo, quién lo dice y en qué difieren

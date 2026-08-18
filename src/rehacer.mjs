@@ -44,8 +44,11 @@ async function pedir(ruta) {
  */
 function porRehacer({ slug = null, lote = 1 }) {
   if (slug) return pedir(`notas?select=*,fuentes(medio,titulo,url,fecha)&slug=eq.${encodeURIComponent(slug)}&limit=1`);
+  // Se toman también las que quedaron sin vertical y solo con el 16:9: son las
+  // que perdieron su reel cuando el horizontal le pisó el archivo.
   return pedir(
-    'notas?select=*,fuentes(medio,titulo,url,fecha)&video_url=not.is.null'
+    'notas?select=*,fuentes(medio,titulo,url,fecha)'
+    + '&or=(video_url.not.is.null,video_horizontal_url.not.is.null)'
     + `&render_version=lt.${VERSION_RENDER}&order=publicada_en.desc&limit=${lote}`,
   );
 }
@@ -91,7 +94,7 @@ export async function rehacer(nota, { voz = 'langa' } = {}) {
   // Mismo nombre de archivo que la vez anterior: el bucket lo sobrescribe y la
   // URL publicada sigue sirviendo, ahora con el video nuevo.
   const videoUrl = await subirVideo(piezas.vertical, nota.slug);
-  const horizontalUrl = piezas.horizontal ? await subirVideo(piezas.horizontal, `${nota.slug}-16x9`) : null;
+  const horizontalUrl = piezas.horizontal ? await subirVideo(piezas.horizontal, nota.slug, { sufijo: '16x9' }) : null;
 
   await marcarVideo(nota.slug, {
     videoUrl, horizontalUrl, duracion: locucion.duracion, version: VERSION_RENDER,

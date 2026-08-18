@@ -157,7 +157,7 @@ export async function procesar(trabajo) {
 
     resultado.video_url = await subirVideo(piezas.vertical, publicada.slug);
     const horizontalUrl = piezas.horizontal
-      ? await subirVideo(piezas.horizontal, `${publicada.slug}-16x9`)
+      ? await subirVideo(piezas.horizontal, publicada.slug, { sufijo: '16x9' })
       : null;
 
     await marcarVideo(publicada.slug, {
