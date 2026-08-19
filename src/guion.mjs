@@ -35,7 +35,7 @@ const HERRAMIENTA = {
   input_schema: {
     type: 'object',
     properties: {
-      hook: { type: 'string', description: '3 a 6 palabras en MAYÚSCULAS para el cartel de arranque' },
+      hook: { type: 'string', description: 'el cartel de arranque: 3 a 6 palabras en MAYÚSCULAS, MÁXIMO 34 caracteres contando espacios. Es un cartel, no un titular: tiene que entrar grande en dos renglones.' },
       libreto: { type: 'string', description: 'texto de 80 a 95 palabras para locutar' },
       caption: { type: 'string', description: '2 o 3 frases para el pie del posteo, invitando a leer la nota' },
       hashtags: {

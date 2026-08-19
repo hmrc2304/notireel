@@ -49,8 +49,11 @@ export const COLA = 1.1;         // segundos de aire al final para que no corte 
  *      debajo del cuerpo y el aire de mas los despegaba en dos bloques sueltos
  *  12  el titular puede usar tres renglones si eso lo hace mas grande, y su
  *      cuerpo maximo sube a 152
+ *  13  vuelta a dos renglones: cuando no entra cede el ancho de la letra, que se
+ *      comprime hasta el 86%, y cada renglon se lleva al margen. El hook pasa a
+ *      tener tope de 34 caracteres, que es lo que lo deja entrar grande
  */
-export const VERSION_RENDER = 12;
+export const VERSION_RENDER = 13;
 
 /**
  * Los dos formatos que se producen de cada noticia.

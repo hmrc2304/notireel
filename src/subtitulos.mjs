@@ -54,7 +54,7 @@ const GEOMETRIA = {
     ancho: 1080, alto: 1920,
     margen: 62,
     techoY: 1240, pieY: 1724, respiro: 26,
-    tituloMin: 76, tituloMax: 152, tituloLineas: 3, tituloInter: 0.80,
+    tituloMin: 76, tituloMax: 152, tituloLineas: 2, tituloInter: 0.80,
     bajadaFuente: 47, bajadaMin: 40, bajadaLineas: 3, bajadaInter: 57, bajadaAire: 2,
     subY: 952, subFuente: 88,
     chipX: 1020, chipY: 142, selloX: 52, selloY: 218,
@@ -63,7 +63,7 @@ const GEOMETRIA = {
     ancho: 1920, alto: 1080,
     margen: 62,
     techoY: 690, pieY: 955, respiro: 22,
-    tituloMin: 56, tituloMax: 112, tituloLineas: 3, tituloInter: 0.80,
+    tituloMin: 56, tituloMax: 112, tituloLineas: 2, tituloInter: 0.80,
     bajadaFuente: 38, bajadaMin: 32, bajadaLineas: 3, bajadaInter: 48, bajadaAire: 2,
     subY: 552, subFuente: 68,
     chipX: 1860, chipY: 80, selloX: 56, selloY: 152,
@@ -231,18 +231,23 @@ const entroEntero = (texto, lineas) =>
  * que cortar con puntos suspensivos. Una bajada larga entera en letra un poco
  * más chica se lee; una cortada a la mitad, no.
  */
-function cuerpoQueLlena(texto, { ancho, fuente, maxLineas, min, max, balancear = true }) {
+function cuerpoQueLlena(texto, { ancho, fuente, maxLineas, min, max, balancear = true, comprimirHasta = 1 }) {
+  // El reparto se hace sobre el ancho que la letra puede llegar a ocupar una vez
+  // comprimida: si no, el cuerpo se elige como si la compresión no existiera y se
+  // desperdicia justo el margen que ella libera.
+  const anchoDeReparto = ancho / comprimirHasta;
+
   for (let t = max; t >= min; t -= 2) {
-    const lineas = partirEnLineas(texto, { ancho, fuente, tamano: t, maxLineas, balancear });
+    const lineas = partirEnLineas(texto, { ancho: anchoDeReparto, fuente, tamano: t, maxLineas, balancear });
     if (lineas.length <= maxLineas
       && entroEntero(texto, lineas)
-      && lineas.every((l) => anchoDe(l, fuente, t) <= ancho)) {
+      && lineas.every((l) => anchoDe(l, fuente, t) <= anchoDeReparto)) {
       return { tamano: t, lineas };
     }
   }
   return {
     tamano: min,
-    lineas: partirEnLineas(texto, { ancho, fuente, tamano: min, maxLineas, balancear }),
+    lineas: partirEnLineas(texto, { ancho: anchoDeReparto, fuente, tamano: min, maxLineas, balancear }),
   };
 }
 
@@ -254,9 +259,13 @@ function cuerpoQueLlena(texto, { ancho, fuente, maxLineas, min, max, balancear =
  * el titular se lee como dos frases sueltas. Con un evento por línea, la
  * separación es exactamente la que se pide.
  */
+/** Hasta dónde se puede apretar Anton antes de que se note aplastada. */
+const COMPRIMIR = 0.86;
+
 function bloqueDeTexto({
   lineas, estilo, x, y, interlineado, fin,
-  capa = 2, fade = 240, tamano = null, fuente = null, ancho = null, estirarHasta = 1,
+  capa = 2, fade = 240, tamano = null, fuente = null, ancho = null,
+  estirarHasta = 1, comprimirHasta = 1,
 }) {
   const fs_ = tamano ? `\\fs${tamano}` : '';
 
@@ -274,11 +283,14 @@ function bloqueDeTexto({
      * renglon como esta antes que deformarlo.
      */
     let escala = '';
-    if (fuente && ancho && estirarHasta > 1) {
+    if (fuente && ancho) {
       const mide = anchoDe(linea, fuente, tamano ?? 100);
       if (mide > 0) {
-        const factor = Math.min(ancho / mide, estirarHasta);
-        if (factor > 1.015) escala = `\\fscx${Math.round(factor * 100)}`;
+        // Cada renglón se lleva al margen: se estira si le sobra lugar y se
+        // comprime si le falta. Los topes existen porque Anton ya es condensada
+        // y, pasados esos límites, las letras se ven infladas o aplastadas.
+        const factor = Math.min(Math.max(ancho / mide, comprimirHasta), estirarHasta);
+        if (Math.abs(factor - 1) > 0.015) escala = `\\fscx${Math.round(factor * 100)}`;
       }
     }
 
@@ -383,7 +395,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
   const armar = (maxTitulo, maxBajada) => {
     const titulo = cuerpoQueLlena(hook, {
       ancho: anchoUtil, fuente: 'anton', maxLineas: g.tituloLineas,
-      min: g.tituloMin, max: maxTitulo,
+      min: g.tituloMin, max: maxTitulo, comprimirHasta: COMPRIMIR,
     });
     const interTitulo = Math.round(titulo.tamano * g.tituloInter);
     const altoTitulo = titulo.tamano + (titulo.lineas.length - 1) * interTitulo;
@@ -451,7 +463,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     lineas: titulo.lineas,
     estilo: 'Titulo', x: g.margen, y: arranque, interlineado: interTitulo, fin,
     tamano: titulo.tamano,
-    fuente: 'anton', ancho: anchoUtil, estirarHasta: 1.22,
+    fuente: 'anton', ancho: anchoUtil, estirarHasta: 1.40, comprimirHasta: COMPRIMIR,
   }));
 
   if (lineasBajada.length) {
