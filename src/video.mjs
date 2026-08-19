@@ -47,8 +47,10 @@ export const COLA = 1.1;         // segundos de aire al final para que no corte 
  *      tres renglones y el piso del bloque se calcula con el cuerpo real
  *  11  el titular pegado a su bajada: en Anton la mayuscula deja 27px muertos
  *      debajo del cuerpo y el aire de mas los despegaba en dos bloques sueltos
+ *  12  el titular puede usar tres renglones si eso lo hace mas grande, y su
+ *      cuerpo maximo sube a 152
  */
-export const VERSION_RENDER = 11;
+export const VERSION_RENDER = 12;
 
 /**
  * Los dos formatos que se producen de cada noticia.

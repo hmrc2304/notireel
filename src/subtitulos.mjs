@@ -54,7 +54,7 @@ const GEOMETRIA = {
     ancho: 1080, alto: 1920,
     margen: 62,
     techoY: 1240, pieY: 1724, respiro: 26,
-    tituloMin: 74, tituloMax: 132, tituloLineas: 2, tituloInter: 0.80,
+    tituloMin: 76, tituloMax: 152, tituloLineas: 3, tituloInter: 0.80,
     bajadaFuente: 47, bajadaMin: 40, bajadaLineas: 3, bajadaInter: 57, bajadaAire: 2,
     subY: 952, subFuente: 88,
     chipX: 1020, chipY: 142, selloX: 52, selloY: 218,
@@ -63,7 +63,7 @@ const GEOMETRIA = {
     ancho: 1920, alto: 1080,
     margen: 62,
     techoY: 690, pieY: 955, respiro: 22,
-    tituloMin: 54, tituloMax: 96, tituloLineas: 2, tituloInter: 0.80,
+    tituloMin: 56, tituloMax: 112, tituloLineas: 3, tituloInter: 0.80,
     bajadaFuente: 38, bajadaMin: 32, bajadaLineas: 3, bajadaInter: 48, bajadaAire: 2,
     subY: 552, subFuente: 68,
     chipX: 1860, chipY: 80, selloX: 56, selloY: 152,
@@ -220,6 +220,12 @@ const entroEntero = (texto, lineas) =>
  * Un titular corto con cuerpo fijo deja media franja vacía y se ve chico; uno
  * largo se desborda. Con el cuerpo calculado, el renglón más ancho siempre roza
  * el margen y el bloque ocupa lo que tiene que ocupar.
+ *
+ * `maxLineas` es un tope, no una meta: se prueba de mayor a menor y gana el
+ * primer cuerpo que entre, use los renglones que use. Por eso el tope está en
+ * tres y no en dos. Forzar dos renglones a un titular de sesenta caracteres lo
+ * dejaba en cuerpo 74, casi el tamaño de su propia bajada; en tres renglones
+ * entra a 110 y vuelve a mandar en el bloque.
  *
  * Para la bajada sirve para lo contrario: bajar un punto o dos de cuerpo antes
  * que cortar con puntos suspensivos. Una bajada larga entera en letra un poco
