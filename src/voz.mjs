@@ -66,8 +66,49 @@ function acelerar(mp3, palabras, factor) {
  * Locuta el libreto. Devuelve { mp3, palabras: [{ palabra, desde, hasta }], duracion }.
  * `velocidad` acelera el resultado; 1.25 es el ritmo de lectura de un noticiero.
  */
+/**
+ * Tope de consumo de voz por día.
+ *
+ * Es un freno de mano, no una estimación: con 24 videos diarios el motor gasta
+ * unos 6.700 créditos, así que 9.000 deja aire para reintentos sin dejar lugar a
+ * una corrida descontrolada. Existe porque iterar el diseño rehaciendo videos
+ * quemó los 10.034 créditos del plan en una sola tarde, y nadie se enteró hasta
+ * que la API devolvió 401.
+ *
+ * Se puede subir con TOPE_VOZ_DIARIO, pero el número tiene que decidirse a mano.
+ */
+const TOPE_DIARIO = Number(env('TOPE_VOZ_DIARIO', false) ?? 9000);
+
+/** Cuántos créditos se consumieron hoy, según la propia API de ElevenLabs. */
+export async function gastadoHoy() {
+  const arranque = new Date();
+  arranque.setHours(0, 0, 0, 0);
+
+  try {
+    const r = await fetch(
+      `${API}/usage/character-stats?start_unix=${arranque.getTime()}&end_unix=${Date.now()}`,
+      { headers: { 'xi-api-key': env('ELEVENLABS_API_KEY') } },
+    );
+    if (!r.ok) return 0;
+    const d = await r.json();
+    return Object.values(d.usage ?? {}).flat().reduce((a, b) => a + b, 0);
+  } catch {
+    // Si no se puede consultar, no se bloquea la producción por las dudas.
+    return 0;
+  }
+}
+
 export async function locutar(texto, destino, { voz = 'langa', modelo = 'eleven_flash_v2_5', velocidad = VELOCIDAD } = {}) {
   const voiceId = VOCES[voz] ?? voz;
+
+  const gastado = await gastadoHoy();
+  if (gastado >= TOPE_DIARIO) {
+    throw new Error(
+      `tope diario de voz alcanzado: ${gastado} de ${TOPE_DIARIO} créditos. `
+      + 'Es a propósito. Para cambiar el diseño de una pieza usá src/repintar.mjs, '
+      + 'que no gasta voz. Para subir el tope, TOPE_VOZ_DIARIO.',
+    );
+  }
 
   const res = await fetch(`${API}/text-to-speech/${voiceId}/with-timestamps?output_format=mp3_44100_128`, {
     method: 'POST',

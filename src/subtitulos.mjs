@@ -317,6 +317,9 @@ const CERTEZA = {
 export function construirASS({
   hook, bajada = '', seccion, palabras, duracion,
   imagenGenerada = false, certeza = null, mediosCount = 0, formato = 'vertical',
+  // El titular y la bajada los dibuja franja.mjs con CSS. Acá quedan por si
+  // hace falta una pieza sin esa capa, pero el motor los pide apagados.
+  conTexto = true,
 }) {
   const g = GEOMETRIA[formato] ?? GEOMETRIA.vertical;
   const bloques = agrupar(palabras ?? []);
@@ -459,14 +462,14 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
   // muerda el borde de la foto antes que pisar el pie de la marca.
   const arranque = Math.max(g.techoY, piso - altoTitulo - altoBajada);
 
-  filas.push(...bloqueDeTexto({
+  if (conTexto) filas.push(...bloqueDeTexto({
     lineas: titulo.lineas,
     estilo: 'Titulo', x: g.margen, y: arranque, interlineado: interTitulo, fin,
     tamano: titulo.tamano,
     fuente: 'anton', ancho: anchoUtil, estirarHasta: 1.40, comprimirHasta: COMPRIMIR,
   }));
 
-  if (lineasBajada.length) {
+  if (conTexto && lineasBajada.length) {
     filas.push(...bloqueDeTexto({
       lineas: lineasBajada,
       estilo: 'Bajada', x: g.margen, y: arranque + altoTitulo + g.bajadaAire,

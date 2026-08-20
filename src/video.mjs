@@ -4,8 +4,9 @@
  * Capas, de abajo hacia arriba:
  *   1. la foto de la noticia estirada a pantalla completa y desenfocada (evita bandas negras)
  *   2. la misma foto nítida arriba, con un Ken Burns lento
- *   3. el marco fijo (logo, avatar, degradados, pie)
- *   4. el ASS (chip de sección, hook fijo, subtítulos sincronizados)
+ *   3. el marco fijo (logo, degradados, pie)
+ *   4. la franja del texto, generada con HTML y CSS (titular y bajada)
+ *   5. el ASS, solo con lo que va atado al audio (chip, sello y subtítulos)
  *
  * Todo se corre con cwd en la raíz del proyecto y rutas relativas: el filtro ass
  * usa ":" como separador y los paths de Windows tipo C:\ lo rompen.
@@ -17,6 +18,7 @@ import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { DIRS , esPrincipal } from './config.mjs';
 import { construirASS } from './subtitulos.mjs';
+import { generarFranja } from './franja.mjs';
 
 const FPS = 30;
 export const COLA = 1.1;         // segundos de aire al final para que no corte seco
@@ -52,8 +54,10 @@ export const COLA = 1.1;         // segundos de aire al final para que no corte 
  *  13  vuelta a dos renglones: cuando no entra cede el ancho de la letra, que se
  *      comprime hasta el 86%, y cada renglon se lleva al margen. El hook pasa a
  *      tener tope de 34 caracteres, que es lo que lo deja entrar grande
+ *  14  el titular y la bajada salen de una capa hecha con HTML y CSS, no del
+ *      ASS: cambiarlos ya no obliga a recomponer la pieza ni a comprar voz
  */
-export const VERSION_RENDER = 13;
+export const VERSION_RENDER = 14;
 
 /**
  * Los dos formatos que se producen de cada noticia.
@@ -158,7 +162,7 @@ const MAX_FOTOS = 5; // más de cinco en treinta segundos se siente un pase de d
  * segundos sobre una única foto congelada se sienten eternos, y las coberturas
  * del mismo hecho ya traen sus propias imágenes, así que el material está.
  */
-export function componer({ fotos, foto, marco, mp3, ass, destino, duracion, formato = 'vertical' }) {
+export function componer({ fotos, foto, marco, franja, franjaY = 0, mp3, ass, destino, duracion, formato = 'vertical' }) {
   const { ancho: W, alto: H, altoFoto: ALTO_FOTO } = FORMATOS[formato] ?? FORMATOS.vertical;
   const lista = (fotos?.length ? fotos : [foto]).filter(Boolean);
   const total = duracion + COLA;
@@ -211,12 +215,19 @@ export function componer({ fotos, foto, marco, mp3, ass, destino, duracion, form
   if (n === 1) filtros.push('[f0]null[fotos]');
 
   const marcoIdx = n + 1;
+  // La franja del texto entra como una capa más, después del marco: tapa el
+  // borde inferior de la foto y por eso va arriba de todo lo dibujado.
+  const franjaIdx = franja ? marcoIdx + 1 : null;
+  const audioIdx = franja ? marcoIdx + 2 : marcoIdx + 1;
+  const ultimaCapa = franja ? '[conTexto]' : '[conMarco]';
+
   filtros.push(
     `[bg][fotos]overlay=0:0:shortest=0[conFoto]`,
     `[conFoto][${marcoIdx}:v]overlay=0:0[conMarco]`,
-    `[conMarco]ass=${rel(ass)}:fontsdir=assets/fonts,format=yuv420p[v]`,
+    ...(franja ? [`[conMarco][${franjaIdx}:v]overlay=0:${franjaY}[conTexto]`] : []),
+    `${ultimaCapa}ass=${rel(ass)}:fontsdir=assets/fonts,format=yuv420p[v]`,
     // Fade de audio al final, sincronizado con la cola.
-    `[${marcoIdx + 1}:a]afade=t=out:st=${duracion.toFixed(2)}:d=${COLA.toFixed(2)},apad=whole_dur=${total.toFixed(2)}[a]`,
+    `[${audioIdx}:a]afade=t=out:st=${duracion.toFixed(2)}:d=${COLA.toFixed(2)},apad=whole_dur=${total.toFixed(2)}[a]`,
   );
 
   const args = [
@@ -224,7 +235,8 @@ export function componer({ fotos, foto, marco, mp3, ass, destino, duracion, form
     '-loop', '1', '-t', String(total), '-i', rel(lista[0]),          // 0: fondo
     ...lista.flatMap((f) => ['-loop', '1', '-t', String(turno + 0.5), '-i', rel(f)]), // 1..n: fotos
     '-loop', '1', '-t', String(total), '-i', rel(marco),             // n+1: marco
-    '-i', rel(mp3),                                                   // n+2: locución
+    ...(franja ? ['-loop', '1', '-t', String(total), '-i', rel(franja)] : []), // n+2: franja
+    '-i', rel(mp3),                                                   // último: locución
     '-filter_complex', filtros.join(';'),
     '-map', '[v]', '-map', '[a]',
     '-c:v', 'libx264', '-preset', 'medium', '-crf', '20',
@@ -295,10 +307,20 @@ export async function armarVideo({
 
     const sufijo = formato === 'vertical' ? '' : `-${formato}`;
     const ass = `${base}${sufijo}.ass`;
-    fs.writeFileSync(ass, construirASS({ ...comun, formato }), 'utf8');
+    // El ASS ya solo lleva lo que va sincronizado con el audio: los subtítulos
+    // de la voz, el chip y el sello. El titular y la bajada los dibuja el
+    // navegador, para que cambiarlos no obligue a recomponer la pieza.
+    fs.writeFileSync(ass, construirASS({ ...comun, formato, conTexto: false }), 'utf8');
+
+    const { ruta: franja, y: franjaY } = generarFranja({
+      hook: guion.hook,
+      bajada: nota.bajada ?? '',
+      formato,
+      destino: `${base}${sufijo}-franja.png`,
+    });
 
     const destino = path.join(DIRS.salida, `${id}${sufijo}.mp4`);
-    componer({ fotos, marco, mp3: locucion.mp3, ass, destino, duracion: locucion.duracion, formato });
+    componer({ fotos, marco, franja, franjaY, mp3: locucion.mp3, ass, destino, duracion: locucion.duracion, formato });
 
     salidas[formato] = destino;
   }
