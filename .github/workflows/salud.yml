@@ -1,0 +1,33 @@
+name: Revisar la salud del motor
+
+# Cuatro veces al día, repartidas: si el motor se queda sin saldo a la mañana,
+# nadie se entera hasta la noche con un solo chequeo diario. Y GitHub saltea
+# horarios cuando está cargado, así que varios sueltos son más confiables que uno.
+on:
+  schedule:
+    - cron: '25 8 * * *'
+    - cron: '25 13 * * *'
+    - cron: '25 18 * * *'
+    - cron: '25 23 * * *'
+  workflow_dispatch:
+
+jobs:
+  revisar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # Este workflow existe para fallar cuando algo anda mal: es la única forma
+      # de que llegue un mail. No lleva `continue-on-error` a propósito.
+      - name: Revisar
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          KIE_API_KEY: ${{ secrets.KIE_API_KEY }}
+          SUPABASE_NOTIREEL_URL: ${{ secrets.SUPABASE_NOTIREEL_URL }}
+          SUPABASE_NOTIREEL_SERVICE_KEY: ${{ secrets.SUPABASE_NOTIREEL_SERVICE_KEY }}
+        run: node src/salud.mjs
